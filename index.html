@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="教練管理">
+<meta name="theme-color" content="#1a1a1a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>教練管理系統</title>
+<style>
+:root {
+  --bg: #ffffff; --bg2: #f5f5f5; --bg3: #efefef;
+  --text: #1a1a1a; --text2: #666; --text3: #999;
+  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+  --accent: #1a1a1a; --accent-fg: #fff;
+  --green: #1D9E75; --green-bg: #E1F5EE; --green-text: #085041;
+  --blue: #378ADD; --blue-bg: #E6F1FB; --blue-text: #0C447C;
+  --amber: #BA7517; --amber-bg: #FAEEDA; --amber-text: #633806;
+  --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #791F1F;
+  --purple: #534AB7; --purple-bg: #EEEDFE; --purple-text: #3C3489;
+  --pink-bg: #FBEAF0; --pink-text: #72243E;
+  --radius: 12px; --radius-sm: 8px;
+  --nav-h: 64px; --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --header-h: 56px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111; --bg2: #1e1e1e; --bg3: #2a2a2a;
+    --text: #f0f0f0; --text2: #aaa; --text3: #666;
+    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+    --accent: #f0f0f0; --accent-fg: #111;
+    --green-bg: #0a2e22; --green-text: #5DCAA5;
+    --blue-bg: #0a1f35; --blue-text: #85B7EB;
+    --amber-bg: #2a1e08; --amber-text: #EF9F27;
+    --red-bg: #2a0f0f; --red-text: #F09595;
+    --purple-bg: #1a1730; --purple-text: #AFA9EC;
+    --pink-bg: #2a1020; --pink-text: #ED93B1;
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); }
+.app { display: flex; flex-direction: column; height: 100%; }
+.header { height: var(--header-h); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-bottom: 0.5px solid var(--border); padding-top: env(safe-area-inset-top, 0); flex-shrink: 0; }
+.header-title { font-size: 17px; font-weight: 600; color: var(--text); }
+.header-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--bg2); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); }
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+.bottom-nav { height: calc(var(--nav-h) + var(--safe-bottom)); padding-bottom: var(--safe-bottom); background: var(--bg); border-top: 0.5px solid var(--border); display: flex; flex-shrink: 0; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; color: var(--text3); transition: color 0.15s; border: none; background: none; padding-top: 6px; }
+.nav-item.active { color: var(--accent); }
+.nav-icon { font-size: 22px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 500; }
+.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.student-name { font-size: 16px; font-weight: 600; }
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.metric-card { background: var(--bg2); border-radius: var(--radius-sm); padding: 12px; }
+.metric-lbl { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+.metric-val { font-size: 24px; font-weight: 700; }
+.metric-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.badge { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+.badge-new { background: var(--blue-bg); color: var(--blue-text); }
+.badge-old { background: var(--green-bg); color: var(--green-text); }
+.badge-friend { background: var(--amber-bg); color: var(--amber-text); }
+.badge-low { background: var(--red-bg); color: var(--red-text); }
+.badge-adj { background: var(--purple-bg); color: var(--purple-text); }
+.badge-trial { background: var(--pink-bg); color: var(--pink-text); }
+.tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
+.info-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); padding: 5px 0; border-bottom: 0.5px solid var(--border); }
+.info-row:last-child { border: none; }
+.info-row span:last-child { color: var(--text); font-weight: 500; }
+.progress-bar { height: 5px; background: var(--bg3); border-radius: 99px; margin: 8px 0 10px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 99px; }
+.btn { font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; font-weight: 500; }
+.btn-purple { background: var(--purple-bg); color: var(--purple-text); border-color: transparent; }
+.btn-danger { color: var(--red-text); border-color: var(--red-bg); }
+.btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 16px; }
+.action-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+.section-title { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px; }
+.empty { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 14px; }
+.search-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.search-bar input { flex: 1; font-size: 15px; padding: 9px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
+.search-bar select { font-size: 13px; padding: 9px 8px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-month { font-size: 17px; font-weight: 600; }
+.cal-dow-row { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
+.cal-dow { text-align: center; font-size: 11px; color: var(--text3); font-weight: 500; padding: 3px 0; }
+.cal-cells { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+.cal-cell { min-height: 44px; border-radius: var(--radius-sm); padding: 4px; background: var(--bg2); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+.cal-cell.empty { background: transparent; cursor: default; }
+.cal-cell.today { border: 1.5px solid var(--blue); background: var(--blue-bg); }
+.cal-cell.selected { border: 1.5px solid var(--green); background: var(--green-bg); }
+.cal-day { font-size: 13px; font-weight: 500; }
+.cal-dots { display: flex; gap: 2px; margin-top: 2px; }
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+.dot-sign { background: var(--green); }
+.dot-pay { background: var(--blue); }
+.day-detail { background: var(--bg2); border-radius: var(--radius); padding: 14px; margin-top: 12px; }
+.day-detail-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+.day-event { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
+.day-event:last-child { border: none; }
+.htag { font-size: 10px; padding: 2px 7px; border-radius: 99px; }
+.htag-pay { background: var(--blue-bg); color: var(--blue-text); }
+.htag-sign { background: var(--green-bg); color: var(--green-text); }
+.htag-adj { background: var(--purple-bg); color: var(--purple-text); }
+.sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; }
+.sheet-overlay.open { display: block; }
+.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 101; padding-bottom: calc(var(--safe-bottom) + 16px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
+.sheet.open { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 99px; margin: 12px auto 4px; }
+.sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px 12px; }
+.sheet-title { font-size: 17px; font-weight: 600; }
+.sheet-close { font-size: 22px; color: var(--text3); background: none; border: none; cursor: pointer; line-height: 1; padding: 4px; }
+.sheet-body { padding: 0 20px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; font-weight: 500; }
+.form-group input, .form-group select { width: 100%; font-size: 16px; padding: 11px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
+.form-group input[readonly] { color: var(--text2); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.preview-box { background: var(--bg2); border-radius: var(--radius-sm); padding: 11px 12px; font-size: 13px; color: var(--text2); margin-bottom: 14px; line-height: 1.5; }
+.sheet-footer { display: flex; gap: 10px; padding: 16px 20px 0; }
+.sheet-footer .btn { flex: 1; justify-content: center; padding: 13px; font-size: 15px; border-radius: var(--radius); }
+.info-box { border: 0.5px solid var(--purple-text); border-radius: var(--radius-sm); padding: 12px; background: var(--purple-bg); margin-bottom: 16px; }
+.info-box-title { font-size: 13px; font-weight: 600; color: var(--purple-text); margin-bottom: 4px; }
+.info-box-body { font-size: 12px; color: var(--purple-text); line-height: 1.6; opacity: 0.85; }
+.divider { border: none; border-top: 0.5px solid var(--border); margin: 14px 0; }
+.plan-card { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.plan-row { display: flex; justify-content: space-between; align-items: center; }
+.hist-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.hist-row:last-child { border: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <span class="header-title" id="page-header-title">總覽</span>
+    <button class="header-btn" id="header-action-btn" onclick="headerAction()" style="display:none">＋</button>
+  </div>
+  <div class="content">
+    <div class="page active" id="page-dashboard">
+      <div class="metric-grid" id="dash-metrics"></div>
+      <p class="section-title">堂數即將用完（≤ 3 堂）</p>
+      <div id="low-list"></div>
+    </div>
+    <div class="page" id="page-calendar">
+      <div class="cal-nav">
+        <button class="btn btn-icon" onclick="calMove(-1)">‹</button>
+        <span class="cal-month" id="cal-title"></span>
+        <button class="btn btn-icon" onclick="calMove(1)">›</button>
+      </div>
+      <div class="cal-dow-row" id="cal-dow"></div>
+      <div class="cal-cells" id="cal-cells"></div>
+      <div class="day-detail" id="day-detail"><span style="color:var(--text3);font-size:13px;">點選日期查看記錄</span></div>
+      <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--text2);align-items:center;">
+        <span><span class="cal-dot dot-sign" style="display:inline-block;vertical-align:middle;margin-right:3px;"></span>簽到</span>
+        <span><span class="cal-dot dot-pay" style="display:inline-block;vertical-align:middle;margin-right:3px;"></span>繳費</span>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="openSignin(null,calSelected)">✓ 為所選日期新增簽到</button>
+      </div>
+    </div>
+    <div class="page" id="page-students">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="搜尋學員..." oninput="renderStudents()">
+        <select id="filter-type" onchange="renderStudents()">
+          <option value="">全部</option>
+          <option value="new">新生</option>
+          <option value="old">舊生</option>
+          <option value="friend">親友</option>
+        </select>
+      </div>
+      <div id="students-list"></div>
+    </div>
+    <div class="page" id="page-plans">
+      <p class="section-title">2026 年學費方案（每堂 60 分鐘・每期 8 堂）</p>
+      <div id="plans-list"></div>
+      <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text2);margin-top:4px;">
+        ※ 2025 年舊生一對一正式課程方案為 1,750 元/堂。每期固定 8 堂課。
+      </div>
+    </div>
+    <div class="page" id="page-history">
+      <div class="search-bar">
+        <select id="hf-student" onchange="renderHistory()" style="flex:1;"><option value="">全部學員</option></select>
+        <select id="hf-type" onchange="renderHistory()">
+          <option value="">全部</option>
+          <option value="payment">繳費</option>
+          <option value="signin">簽到</option>
+          <option value="adjust">校正</option>
+        </select>
+      </div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">⊞</span><span class="nav-label">總覽</span>
+    </button>
+    <button class="nav-item" onclick="showPage('calendar')" id="nav-calendar">
+      <span class="nav-icon">📅</span><span class="nav-label">行事曆</span>
+    </button>
+    <button class="nav-item" onclick="showPage('students')" id="nav-students">
+      <span class="nav-icon">👤</span><span class="nav-label">學員</span>
+    </button>
+    <button class="nav-item" onclick="showPage('plans')" id="nav-plans">
+      <span class="nav-icon">💰</span><span class="nav-label">方案</span>
+    </button>
+    <button class="nav-item" onclick="showPage('history')" id="nav-history">
+      <span class="nav-icon">📋</span><span class="nav-label">紀錄</span>
+    </button>
+  </nav>
+</div>
+
+<div class="sheet-overlay" id="overlay-student" onclick="closeSheet('sheet-student')"></div>
+<div class="sheet" id="sheet-student">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title" id="sheet-student-title">新增學員</span>
+    <button class="sheet-close" onclick="closeSheet('sheet-student')">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-row">
+      <div class="form-group"><label>姓名</label><input type="text" id="f-name" placeholder="學員姓名"></div>
+      <div class="form-group"><label>學員類型</label><select id="f-type" onchange="updatePlanOpts()"><option value="new">新生</option><option value="old">舊生</option><option value="friend">親友</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>課程類型</label><select id="f-course" onchange="updatePlanOpts()"><option value="solo">一對一</option><option value="duo">一對二</option></select></div>
+      <div class="form-group"><label>方案</label><select id="f-plan" onchange="autoFill()"><option value="regular">正式課程</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>購買期數</label><input type="number" id="f-periods" value="1" min="1" oninput="autoFill()"></div>
+      <div class="form-group"><label>繳費金額（元）</label><input type="number" id="f-amount" placeholder="自動帶入"></div>
+    </div>
+    <div class="form-group"><label>繳費日期</label><input type="date" id="f-paydate"></div>
+    <div class="form-group"><label>備註</label><input type="text" id="f-note" placeholder="選填"></div>
+    <div class="preview-box" id="f-preview"></div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn" onclick="closeSheet('sheet-student')">取消</button>
+    <button class="btn btn-primary" onclick="saveStudent()">儲存</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="overlay-signin" onclick="closeSheet('sheet-signin')"></div>
+<div class="sheet" id="sheet-signin">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">課堂簽到</span>
+    <button class="sheet-close" onclick="closeSheet('sheet-signin')">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group"><label>學員</label><select id="si-student" onchange="updateSiPreview()"><option value="">選擇學員</option></select></div>
+    <div class="form-group"><label>簽到日期</label><input type="date" id="si-date"></div>
+    <div class="form-group"><label>備註</label><input type="text" id="si-note" placeholder="選填"></div>
+    <div class="preview-box" id="si-preview"></div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn" onclick="closeSheet('sheet-signin')">取消</button>
+    <button class="btn btn-primary" onclick="saveSignin()">確認簽到</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="overlay-addsessions" onclick="closeSheet('sheet-addsessions')"></div>
+<div class="sheet" id="sheet-addsessions">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">新增期數 / 繳費</span>
+    <button class="sheet-close" onclick="closeSheet('sheet-addsessions')">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="form-group"><label>學員</label><input type="text" id="as-name" readonly></div>
+    <div class="form-row">
+      <div class="form-group"><label>新增期數（每期 8 堂）</label><input type="number" id="as-periods" value="1" min="1" oninput="asAutoFill()"></div>
+      <div class="form-group"><label>繳費金額（元）</label><input type="number" id="as-amount" placeholder="金額"></div>
+    </div>
+    <div class="form-group"><label>繳費日期</label><input type="date" id="as-paydate"></div>
+    <div class="form-group"><label>備註</label><input type="text" id="as-note" placeholder="選填"></div>
+    <div class="preview-box" id="as-preview"></div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn" onclick="closeSheet('sheet-addsessions')">取消</button>
+    <button class="btn btn-primary" onclick="saveAddSessions()">確認</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="overlay-adjust" onclick="closeSheet('sheet-adjust')"></div>
+<div class="sheet" id="sheet-adjust">
+  <div class="sheet-handle"></div>
+  <div class="sheet-header">
+    <span class="sheet-title">期數校正</span>
+    <button class="sheet-close" onclick="closeSheet('sheet-adjust')">✕</button>
+  </div>
+  <div class="sheet-body">
+    <div class="info-box">
+      <div class="info-box-title">適用情境</div>
+      <div class="info-box-body">學員在使用系統前已上過幾期課，直接填入目前正確的狀態，系統會自動記錄校正差異，不需補登歷史資料。</div>
+    </div>
+    <div class="form-group"><label>學員</label><input type="text" id="adj-name" readonly></div>
+    <hr class="divider">
+    <p class="section-title" style="margin-bottom:10px;">填入正確的現況</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>實際已上堂數（含歷史）</label>
+        <input type="number" id="adj-used" min="0" oninput="adjPreview()">
+        <div class="form-hint">從開始上課至今總共幾堂</div>
+      </div>
+      <div class="form-group">
+        <label>目前剩餘堂數</label>
+        <input type="number" id="adj-remaining" min="0" oninput="adjPreview()">
+        <div class="form-hint">這期還剩幾堂沒上</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>實際總期數（含歷史）</label>
+      <input type="number" id="adj-periods" min="1" oninput="adjPreview()">
+      <div class="form-hint">從第一期到現在共購買幾期</div>
+    </div>
+    <div class="preview-box" id="adj-preview"></div>
+    <div class="form-group"><label>校正原因（備註）</label><input type="text" id="adj-note" placeholder="例：系統上線前已上第 1～3 期"></div>
+  </div>
+  <div class="sheet-footer">
+    <button class="btn" onclick="closeSheet('sheet-adjust')">取消</button>
+    <button class="btn btn-primary" onclick="saveAdjust()">確認校正</button>
+  </div>
+</div>
+
+<script>
+const SPP=8;
+const PLANS={old:{solo:{trial:null,regular:1800},duo:{trial:null,regular:3300}},new:{solo:{trial:1799,regular:1900},duo:{trial:3000,regular:3400}},friend:{solo:{trial:null,regular:1500},duo:{trial:null,regular:2800}}};
+const TL={new:'新生',old:'舊生',friend:'親友'};
+const TB={new:'badge-new',old:'badge-old',friend:'badge-friend'};
+const CL={solo:'一對一',duo:'一對二'};
+const DOW=['日','一','二','三','四','五','六'];
+let students=[],history=[],editingId=null,addSessionsId=null,adjustId=null;
+let calYear,calMonth,calSelected;
+function load(){try{students=JSON.parse(localStorage.getItem('coach_pwa_students')||'[]');history=JSON.parse(localStorage.getItem('coach_pwa_history')||'[]');}catch(e){students=[];history=[];}}
+function save(){try{localStorage.setItem('coach_pwa_students',JSON.stringify(students));localStorage.setItem('coach_pwa_history',JSON.stringify(history));}catch(e){}}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtDate(d){if(!d)return '—';const p=d.split('-');return p[0]+'/'+p[1]+'/'+p[2];}
+load();
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('nav-'+p).classList.add('active');
+  const titles={dashboard:'總覽',calendar:'行事曆',students:'學員',plans:'方案',history:'紀錄'};
+  document.getElementById('page-header-title').textContent=titles[p]||'';
+  document.getElementById('header-action-btn').style.display=p==='students'?'flex':'none';
+  if(p==='dashboard')renderDashboard();
+  if(p==='calendar')renderCalendar();
+  if(p==='students')renderStudents();
+  if(p==='plans')renderPlans();
+  if(p==='history')renderHistory();
+}
+function headerAction(){openAddStudent();}
+function renderDashboard(){
+  const ts=students.length,active=students.filter(s=>s.remaining>0).length;
+  const rev=history.filter(h=>h.type==='payment').reduce((a,b)=>a+(b.amount||0),0);
+  const signs=history.filter(h=>h.type==='signin').length;
+  document.getElementById('dash-metrics').innerHTML=`<div class="metric-card"><div class="metric-lbl">學員總數</div><div class="metric-val">${ts}</div></div><div class="metric-card"><div class="metric-lbl">有效學員</div><div class="metric-val">${active}</div></div><div class="metric-card"><div class="metric-lbl">累計收入</div><div class="metric-val" style="font-size:18px;">$${rev.toLocaleString()}</div></div><div class="metric-card"><div class="metric-lbl">上課次數</div><div class="metric-val">${signs}</div><div class="metric-sub">堂</div></div>`;
+  const low=students.filter(s=>s.remaining<=3);
+  const e
