@@ -365,4 +365,105 @@ function renderDashboard(){
   const signs=history.filter(h=>h.type==='signin').length;
   document.getElementById('dash-metrics').innerHTML=`<div class="metric-card"><div class="metric-lbl">學員總數</div><div class="metric-val">${ts}</div></div><div class="metric-card"><div class="metric-lbl">有效學員</div><div class="metric-val">${active}</div></div><div class="metric-card"><div class="metric-lbl">累計收入</div><div class="metric-val" style="font-size:18px;">$${rev.toLocaleString()}</div></div><div class="metric-card"><div class="metric-lbl">上課次數</div><div class="metric-val">${signs}</div><div class="metric-sub">堂</div></div>`;
   const low=students.filter(s=>s.remaining<=3);
-  const e
+  const el=document.getElementById('low-list');
+  if(!low.length){el.innerHTML='<div class="empty">目前沒有學員堂數不足</div>';return;}
+  el.innerHTML=low.map(s=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="student-name">${s.name}</div><div class="tag-row"><span class="badge ${TB[s.type]}">${TL[s.type]}</span><span class="badge" style="background:var(--bg3);color:var(--text2);">${CL[s.course]}</span></div></div><span class="badge badge-low">剩 ${s.remaining} 堂</span></div><div class="action-row"><button class="btn btn-primary" onclick="openAddSessions('${s.id}')">＋ 續費</button><button class="btn" onclick="openSignin('${s.id}',null)">✓ 簽到</button></div></div>`).join('');
+}
+function initCal(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelected=today();}
+function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function getDatesWithEvents(){const m={};history.forEach(h=>{if(!m[h.date])m[h.date]={sign:false,pay:false};if(h.type==='signin')m[h.date].sign=true;if(h.type==='payment')m[h.date].pay=true;});return m;}
+function getEventsForDate(ds){return history.filter(h=>h.date===ds);}
+function renderCalendar(){
+  if(!calYear)initCal();
+  document.getElementById('cal-title').textContent=calYear+'年 '+(calMonth+1)+'月';
+  document.getElementById('cal-dow').innerHTML=DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const todayStr=today();
+  const evMap=getDatesWithEvents();
+  let cells='';
+  for(let i=0;i<firstDay;i++)cells+='<div class="cal-cell empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const ev=evMap[ds]||{};
+    let cls='cal-cell'+(ds===todayStr?' today':'')+(ds===calSelected?' selected':'');
+    cells+=`<div class="${cls}" onclick="selectDay('${ds}')"><span class="cal-day">${d}</span><div class="cal-dots">${ev.sign?'<div class="cal-dot dot-sign"></div>':''}${ev.pay?'<div class="cal-dot dot-pay"></div>':''}</div></div>`;
+  }
+  document.getElementById('cal-cells').innerHTML=cells;
+  renderDayDetail(calSelected);
+}
+function selectDay(ds){calSelected=ds;renderCalendar();}
+function renderDayDetail(ds){
+  const el=document.getElementById('day-detail');
+  if(!ds){el.innerHTML='<span style="color:var(--text3);font-size:13px;">點選日期查看記錄</span>';return;}
+  const evs=getEventsForDate(ds);
+  if(!evs.length){el.innerHTML=`<div class="day-detail-title">${fmtDate(ds)}</div><span style="color:var(--text3);font-size:13px;">當天無記錄</span>`;return;}
+  el.innerHTML=`<div class="day-detail-title">${fmtDate(ds)}（${evs.length} 筆）</div>`+evs.map(ev=>{
+    const s=students.find(st=>st.id===ev.studentId);
+    const name=s?s.name:'（已刪除）';
+    if(ev.type==='signin')return `<div class="day-event"><div><span class="htag htag-sign">簽到</span><strong style="margin-left:6px;">${name}</strong></div><span style="color:var(--text2);font-size:12px;">剩${ev.remainingAfter}堂</span></div>`;
+    if(ev.type==='payment')return `<div class="day-event"><div><span class="htag htag-pay">繳費</span><strong style="margin-left:6px;">${name}</strong></div><div style="text-align:right;"><div style="font-weight:600;font-size:13px;">$${(ev.amount||0).toLocaleString()}</div><div style="font-size:11px;color:var(--text2);">${ev.periods||1}期・${(ev.periods||1)*SPP}堂</div></div></div>`;
+    return '';
+  }).join('');
+}
+function renderStudents(){
+  const q=(document.getElementById('search-input')?.value||'').toLowerCase();
+  const ft=document.getElementById('filter-type')?.value||'';
+  let list=students.filter(s=>(!q||s.name.toLowerCase().includes(q))&&(!ft||s.type===ft));
+  const el=document.getElementById('students-list');
+  if(!list.length){el.innerHTML='<div class="empty">尚無學員資料<br>點右上角 ＋ 新增</div>';return;}
+  el.innerHTML=list.map(s=>{
+    const pct=s.totalSessions>0?Math.round((s.remaining/s.totalSessions)*100):0;
+    const fc=s.remaining<=3?'var(--red)':s.remaining<=6?'var(--amber)':'var(--green)';
+    return `<div class="card"><div class="card-header"><div><div class="student-name">${s.name}</div><div class="tag-row"><span class="badge ${TB[s.type]}">${TL[s.type]}</span><span class="badge" style="background:var(--bg3);color:var(--text2);">${CL[s.course]}</span>${s.planType==='trial'?'<span class="badge badge-trial">體驗</span>':''}${s.adjusted?'<span class="badge badge-adj">已校正</span>':''}</div></div><div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:${fc};">${s.remaining}</div><div style="font-size:10px;color:var(--text3);">堂剩餘</div></div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fc};"></div></div><div><div class="info-row"><span>目前第幾期</span><span>第 ${s.totalPeriods||1} 期</span></div><div class="info-row"><span>累計購買</span><span>${s.totalSessions} 堂（${s.totalPeriods||1} 期）</span></div><div class="info-row"><span>累計上課</span><span>${s.totalUsed} 堂</span></div><div class="info-row"><span>最近繳費</span><span>${fmtDate(s.lastPayDate)}</span></div>${s.note?`<div class="info-row"><span>備註</span><span>${s.note}</span></div>`:''}</div><div class="action-row"><button class="btn btn-primary" onclick="openSignin('${s.id}',null)">✓ 簽到</button><button class="btn" onclick="openAddSessions('${s.id}')">＋ 新增期數</button><button class="btn btn-purple" onclick="openAdjust('${s.id}')">≡ 校正</button><button class="btn" onclick="editStudent('${s.id}')">✎</button><button class="btn btn-danger" onclick="deleteStudent('${s.id}')">✕</button></div></div>`;
+  }).join('');
+}
+function renderPlans(){
+  const rows=[{type:'old',course:'solo'},{type:'old',course:'duo'},{type:'new',course:'solo'},{type:'new',course:'duo'},{type:'friend',course:'solo'},{type:'friend',course:'duo'}];
+  const bc={old:'badge-old',new:'badge-new',friend:'badge-friend'};
+  document.getElementById('plans-list').innerHTML=rows.map(r=>{
+    const p=PLANS[r.type][r.course];
+    return `<div class="plan-card"><div class="plan-row" style="margin-bottom:8px;"><span class="badge ${bc[r.type]}">${TL[r.type]}</span><span style="font-size:12px;color:var(--text2);">${CL[r.course]}</span></div>${p.trial?`<div style="font-size:13px;color:var(--text2);margin-bottom:4px;">體驗：<strong>$${p.trial.toLocaleString()}</strong>/堂</div>`:'<div style="font-size:12px;color:var(--text3);margin-bottom:4px;">體驗：無</div>'}<div style="font-size:15px;font-weight:600;">正式：$${p.regular.toLocaleString()}<span style="font-size:12px;color:var(--text3);font-weight:400;">/堂</span></div><div style="font-size:12px;color:var(--text3);margin-top:4px;">每期 8 堂 = $${(p.regular*8).toLocaleString()}</div></div>`;
+  }).join('');
+}
+function renderHistory(){
+  const hfs=document.getElementById('hf-student');
+  const cur=hfs?hfs.value:'';
+  if(hfs)hfs.innerHTML='<option value="">全部學員</option>'+students.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${s.name}</option>`).join('');
+  const sv=hfs?hfs.value:'';
+  const ft=document.getElementById('hf-type')?.value||'';
+  let list=[...history].reverse().filter(h=>(!sv||h.studentId===sv)&&(!ft||h.type===ft));
+  const el=document.getElementById('history-list');
+  if(!list.length){el.innerHTML='<div class="empty">尚無紀錄</div>';return;}
+  el.innerHTML=list.map(h=>{
+    const s=students.find(st=>st.id===h.studentId);
+    const name=s?s.name:'（已刪除）';
+    if(h.type==='payment')return `<div class="hist-row"><div><div style="font-weight:600;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--text2);">${fmtDate(h.date)}${h.note?'・'+h.note:''}</div></div><div style="text-align:right;"><span class="htag htag-pay">繳費</span><div style="font-weight:600;margin-top:3px;">$${(h.amount||0).toLocaleString()}</div><div style="font-size:11px;color:var(--text2);">${h.periods||1}期・${(h.periods||1)*SPP}堂</div></div></div>`;
+    if(h.type==='signin')return `<div class="hist-row"><div><div style="font-weight:600;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--text2);">${fmtDate(h.date)}${h.note?'・'+h.note:''}</div></div><div style="text-align:right;"><span class="htag htag-sign">簽到</span><div style="font-size:12px;color:var(--text2);margin-top:3px;">剩 ${h.remainingAfter} 堂</div></div></div>`;
+    if(h.type==='adjust')return `<div class="hist-row"><div><div style="font-weight:600;font-size:14px;">${name}</div><div style="font-size:12px;color:var(--text2);">${fmtDate(h.date)}${h.note?'・'+h.note:''}</div></div><div style="text-align:right;"><span class="htag htag-adj">校正</span><div style="font-size:12px;color:var(--text2);margin-top:3px;">第${h.toPeriods}期・剩${h.toRemaining}堂</div></div></div>`;
+    return '';
+  }).join('');
+}
+function openSheet(id){document.getElementById('overlay-'+id.replace('sheet-','')).classList.add('open');setTimeout(()=>document.getElementById(id).classList.add('open'),10);}
+function closeSheet(id){document.getElementById(id).classList.remove('open');setTimeout(()=>document.getElementById('overlay-'+id.replace('sheet-','')).classList.remove('open'),300);}
+function openAddStudent(){editingId=null;document.getElementById('sheet-student-title').textContent='新增學員';document.getElementById('f-name').value='';document.getElementById('f-type').value='new';document.getElementById('f-course').value='solo';document.getElementById('f-periods').value=1;document.getElementById('f-note').value='';document.getElementById('f-paydate').value=today();updatePlanOpts();openSheet('sheet-student');}
+function editStudent(id){const s=students.find(st=>st.id===id);if(!s)return;editingId=id;document.getElementById('sheet-student-title').textContent='編輯學員';document.getElementById('f-name').value=s.name;document.getElementById('f-type').value=s.type;document.getElementById('f-course').value=s.course;document.getElementById('f-plan').value=s.planType||'regular';document.getElementById('f-periods').value=s.totalPeriods||1;document.getElementById('f-amount').value='';document.getElementById('f-note').value=s.note||'';document.getElementById('f-paydate').value=s.lastPayDate||today();updatePlanOpts();openSheet('sheet-student');}
+function updatePlanOpts(){const type=document.getElementById('f-type').value;const course=document.getElementById('f-course').value;const p=PLANS[type][course];const sel=document.getElementById('f-plan');sel.innerHTML='';if(p.trial)sel.innerHTML+='<option value="trial">體驗課</option>';sel.innerHTML+='<option value="regular">正式課程</option>';autoFill();}
+function autoFill(){const type=document.getElementById('f-type').value;const course=document.getElementById('f-course').value;const planType=document.getElementById('f-plan').value;const p=PLANS[type][course];const price=planType==='trial'?p.trial:p.regular;const periods=parseInt(document.getElementById('f-periods').value)||1;const sessions=periods*SPP;const total=(price||0)*sessions;document.getElementById('f-amount').value=total||'';document.getElementById('f-preview').textContent=`${periods} 期 × ${SPP} 堂 = ${sessions} 堂　總計 $${total.toLocaleString()}`;}
+function saveStudent(){const name=document.getElementById('f-name').value.trim();if(!name){alert('請輸入學員姓名');return;}const type=document.getElementById('f-type').value;const course=document.getElementById('f-course').value;const planType=document.getElementById('f-plan').value;const periods=parseInt(document.getElementById('f-periods').value)||1;const sessions=periods*SPP;const amount=parseInt(document.getElementById('f-amount').value)||0;const note=document.getElementById('f-note').value.trim();const paydate=document.getElementById('f-paydate').value||today();if(editingId){const s=students.find(st=>st.id===editingId);s.name=name;s.type=type;s.course=course;s.planType=planType;s.note=note;}else{const id=genId();students.push({id,name,type,course,planType,remaining:sessions,totalSessions:sessions,totalPeriods:periods,totalUsed:0,joinDate:paydate,lastPayDate:paydate,note,adjusted:false});history.push({id:genId(),studentId:id,type:'payment',date:paydate,amount,periods,note:'初次加入'+(note?'・'+note:'')});}save();closeSheet('sheet-student');renderStudents();renderDashboard();}
+function deleteStudent(id){if(!confirm('確定刪除此學員？'))return;students=students.filter(s=>s.id!==id);save();renderStudents();renderDashboard();}
+function openSignin(studentId,dateStr){const sel=document.getElementById('si-student');sel.innerHTML='<option value="">選擇學員</option>'+students.map(s=>`<option value="${s.id}" ${s.id===studentId?'selected':''}>${s.name}（剩 ${s.remaining} 堂）</option>`).join('');document.getElementById('si-date').value=dateStr||today();document.getElementById('si-note').value='';updateSiPreview();openSheet('sheet-signin');}
+function updateSiPreview(){const sid=document.getElementById('si-student').value;const s=students.find(st=>st.id===sid);const el=document.getElementById('si-preview');if(!s){el.textContent='';return;}el.textContent=`目前剩餘 ${s.remaining} 堂，簽到後剩 ${s.remaining-1} 堂`;el.style.color=s.remaining<=1?'var(--red)':'var(--text2)';}
+function saveSignin(){const sid=document.getElementById('si-student').value;if(!sid){alert('請選擇學員');return;}const s=students.find(st=>st.id===sid);if(!s)return;if(s.remaining<=0){alert('此學員已無剩餘堂數，請先續費。');return;}s.remaining--;s.totalUsed++;const date=document.getElementById('si-date').value||today();const note=document.getElementById('si-note').value.trim();history.push({id:genId(),studentId:s.id,type:'signin',date,remainingAfter:s.remaining,note});save();closeSheet('sheet-signin');renderStudents();renderDashboard();if(calSelected===date)renderDayDetail(date);}
+function openAddSessions(id){addSessionsId=id;const s=students.find(st=>st.id===id);document.getElementById('as-name').value=s.name;document.getElementById('as-periods').value=1;document.getElementById('as-amount').value='';document.getElementById('as-paydate').value=today();document.getElementById('as-note').value='';asAutoFill();openSheet('sheet-addsessions');}
+function asAutoFill(){const s=students.find(st=>st.id===addSessionsId);const periods=parseInt(document.getElementById('as-periods').value)||1;const sessions=periods*SPP;const el=document.getElementById('as-preview');if(s){const p=PLANS[s.type][s.course];const total=p.regular*sessions;document.getElementById('as-amount').value=total;el.textContent=`${periods} 期 × ${SPP} 堂 = ${sessions} 堂　建議金額 $${total.toLocaleString()}`;}else el.textContent=`${periods} 期 × ${SPP} 堂 = ${sessions} 堂`;}
+function saveAddSessions(){const s=students.find(st=>st.id===addSessionsId);if(!s)return;const periods=parseInt(document.getElementById('as-periods').value)||1;const sessions=periods*SPP;const amount=parseInt(document.getElementById('as-amount').value)||0;const note=document.getElementById('as-note').value.trim();const paydate=document.getElementById('as-paydate').value||today();s.remaining+=sessions;s.totalSessions+=sessions;s.totalPeriods=(s.totalPeriods||1)+periods;s.lastPayDate=paydate;history.push({id:genId(),studentId:s.id,type:'payment',date:paydate,amount,periods,note:note||'續費新增期數'});save();closeSheet('sheet-addsessions');renderStudents();renderDashboard();}
+function openAdjust(id){adjustId=id;const s=students.find(st=>st.id===id);document.getElementById('adj-name').value=s.name;document.getElementById('adj-used').value=s.totalUsed;document.getElementById('adj-remaining').value=s.remaining;document.getElementById('adj-periods').value=s.totalPeriods||1;document.getElementById('adj-note').value='';adjPreview();openSheet('sheet-adjust');}
+function adjPreview(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const du=nu-s.totalUsed,dr=nr-s.remaining,dp=np-(s.totalPeriods||1);const el=document.getElementById('adj-preview');let txt=`校正後：第 ${np} 期・已上 ${nu} 堂・剩餘 ${nr} 堂\n`;const parts=[];if(dp!==0)parts.push(`期數 ${dp>0?'+':''}${dp}`);if(du!==0)parts.push(`已上 ${du>0?'+':''}${du}`);if(dr!==0)parts.push(`剩餘 ${dr>0?'+':''}${dr}`);txt+=parts.length?`差異：${parts.join('、')}`:'與現有資料相同';el.textContent=txt;}
+function saveAdjust(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const note=document.getElementById('adj-note').value.trim();history.push({id:genId(),studentId:s.id,type:'adjust',date:today(),fromUsed:s.totalUsed,fromRemaining:s.remaining,fromPeriods:s.totalPeriods||1,toUsed:nu,toRemaining:nr,toPeriods:np,note:note||'期數校正'});s.totalUsed=nu;s.remaining=nr;s.totalPeriods=np;s.totalSessions=nu+nr;s.adjusted=true;save();closeSheet('sheet-adjust');renderStudents();renderDashboard();}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+initCal();
+showPage('dashboard');
+</script>
+</body>
+</html>
