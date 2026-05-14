@@ -12,136 +12,144 @@
 <title>教練管理系統</title>
 <style>
 :root {
-  --bg: #ffffff; --bg2: #f5f5f5; --bg3: #efefef;
-  --text: #1a1a1a; --text2: #666; --text3: #999;
-  --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
-  --accent: #1a1a1a; --accent-fg: #fff;
-  --green: #1D9E75; --green-bg: #E1F5EE; --green-text: #085041;
-  --blue: #378ADD; --blue-bg: #E6F1FB; --blue-text: #0C447C;
-  --amber: #BA7517; --amber-bg: #FAEEDA; --amber-text: #633806;
-  --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #791F1F;
-  --purple: #534AB7; --purple-bg: #EEEDFE; --purple-text: #3C3489;
-  --pink-bg: #FBEAF0; --pink-text: #72243E;
-  --radius: 12px; --radius-sm: 8px;
-  --nav-h: 64px; --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --header-h: 56px;
+  --bg:#ffffff;--bg2:#f5f5f5;--bg3:#efefef;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --accent:#1a1a1a;--accent-fg:#fff;
+  --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-text:#0C447C;
+  --amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#633806;
+  --red:#E24B4A;--red-bg:#FCEBEB;--red-text:#791F1F;
+  --purple:#534AB7;--purple-bg:#EEEDFE;--purple-text:#3C3489;
+  --pink-bg:#FBEAF0;--pink-text:#72243E;
+  --radius:12px;--radius-sm:8px;
+  --nav-h:64px;--safe-bottom:env(safe-area-inset-bottom,0px);--header-h:56px;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111; --bg2: #1e1e1e; --bg3: #2a2a2a;
-    --text: #f0f0f0; --text2: #aaa; --text3: #666;
-    --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
-    --accent: #f0f0f0; --accent-fg: #111;
-    --green-bg: #0a2e22; --green-text: #5DCAA5;
-    --blue-bg: #0a1f35; --blue-text: #85B7EB;
-    --amber-bg: #2a1e08; --amber-text: #EF9F27;
-    --red-bg: #2a0f0f; --red-text: #F09595;
-    --purple-bg: #1a1730; --purple-text: #AFA9EC;
-    --pink-bg: #2a1020; --pink-text: #ED93B1;
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#111;--bg2:#1e1e1e;--bg3:#2a2a2a;
+    --text:#f0f0f0;--text2:#aaa;--text3:#666;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+    --accent:#f0f0f0;--accent-fg:#111;
+    --green-bg:#0a2e22;--green-text:#5DCAA5;
+    --blue-bg:#0a1f35;--blue-text:#85B7EB;
+    --amber-bg:#2a1e08;--amber-text:#EF9F27;
+    --red-bg:#2a0f0f;--red-text:#F09595;
+    --purple-bg:#1a1730;--purple-text:#AFA9EC;
+    --pink-bg:#2a1020;--pink-text:#ED93B1;
   }
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvetica Neue', sans-serif; background: var(--bg); color: var(--text); }
-.app { display: flex; flex-direction: column; height: 100%; }
-.header { height: var(--header-h); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-bottom: 0.5px solid var(--border); padding-top: env(safe-area-inset-top, 0); flex-shrink: 0; }
-.header-title { font-size: 17px; font-weight: 600; }
-.header-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--bg2); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
-.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); }
-.page { display: none; padding: 16px; }
-.page.active { display: block; }
-.bottom-nav { height: calc(var(--nav-h) + var(--safe-bottom)); padding-bottom: var(--safe-bottom); background: var(--bg); border-top: 0.5px solid var(--border); display: flex; flex-shrink: 0; }
-.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; color: var(--text3); transition: color 0.15s; border: none; background: none; padding-top: 6px; }
-.nav-item.active { color: var(--accent); }
-.nav-icon { font-size: 20px; line-height: 1; }
-.nav-label { font-size: 10px; font-weight: 500; }
-.card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
-.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.student-name { font-size: 16px; font-weight: 600; }
-.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.metric-card { background: var(--bg2); border-radius: var(--radius-sm); padding: 12px; }
-.metric-lbl { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-.metric-val { font-size: 24px; font-weight: 700; }
-.metric-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.badge { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
-.badge-new { background: var(--blue-bg); color: var(--blue-text); }
-.badge-old { background: var(--green-bg); color: var(--green-text); }
-.badge-friend { background: var(--amber-bg); color: var(--amber-text); }
-.badge-low { background: var(--red-bg); color: var(--red-text); }
-.badge-adj { background: var(--purple-bg); color: var(--purple-text); }
-.badge-trial { background: var(--pink-bg); color: var(--pink-text); }
-.tag-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-.info-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); padding: 5px 0; border-bottom: 0.5px solid var(--border); }
-.info-row:last-child { border: none; }
-.info-row span:last-child { color: var(--text); font-weight: 500; }
-.progress-bar { height: 5px; background: var(--bg3); border-radius: 99px; margin: 8px 0 10px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 99px; }
-.btn { font-size: 13px; padding: 8px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-family: inherit; white-space: nowrap; }
-.btn-primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; font-weight: 500; }
-.btn-purple { background: var(--purple-bg); color: var(--purple-text); border-color: transparent; }
-.btn-danger { color: var(--red-text); border-color: var(--red-bg); }
-.btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 50%; justify-content: center; font-size: 16px; }
-.action-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
-.section-title { font-size: 11px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px; }
-.empty { text-align: center; padding: 32px 16px; color: var(--text3); font-size: 14px; }
-.search-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-.search-bar input { flex: 1; font-size: 15px; padding: 9px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
-.search-bar select { font-size: 13px; padding: 9px 8px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
-.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.cal-month { font-size: 17px; font-weight: 600; }
-.cal-dow-row { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
-.cal-dow { text-align: center; font-size: 11px; color: var(--text3); font-weight: 500; padding: 3px 0; }
-.cal-cells { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
-.cal-cell { min-height: 44px; border-radius: var(--radius-sm); padding: 4px; background: var(--bg2); cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-.cal-cell.empty { background: transparent; cursor: default; }
-.cal-cell.today { border: 1.5px solid var(--blue); background: var(--blue-bg); }
-.cal-cell.selected { border: 1.5px solid var(--green); background: var(--green-bg); }
-.cal-day { font-size: 13px; font-weight: 500; }
-.cal-dots { display: flex; gap: 2px; margin-top: 2px; }
-.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
-.dot-sign { background: var(--green); }
-.dot-pay { background: var(--blue); }
-.day-detail { background: var(--bg2); border-radius: var(--radius); padding: 14px; margin-top: 12px; }
-.day-detail-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
-.day-event { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
-.day-event:last-child { border: none; }
-.htag { font-size: 10px; padding: 2px 7px; border-radius: 99px; }
-.htag-pay { background: var(--blue-bg); color: var(--blue-text); }
-.htag-sign { background: var(--green-bg); color: var(--green-text); }
-.htag-adj { background: var(--purple-bg); color: var(--purple-text); }
-.sheet-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; }
-.sheet-overlay.open { display: block; }
-.sheet { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 101; padding-bottom: calc(var(--safe-bottom) + 16px); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32,0.72,0,1); }
-.sheet.open { transform: translateY(0); }
-.sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 99px; margin: 12px auto 4px; }
-.sheet-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px 12px; }
-.sheet-title { font-size: 17px; font-weight: 600; }
-.sheet-close { font-size: 22px; color: var(--text3); background: none; border: none; cursor: pointer; line-height: 1; padding: 4px; }
-.sheet-body { padding: 0 20px; }
-.form-group { margin-bottom: 14px; }
-.form-group label { font-size: 12px; color: var(--text2); margin-bottom: 5px; display: block; font-weight: 500; }
-.form-group input, .form-group select { width: 100%; font-size: 16px; padding: 11px 12px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); font-family: inherit; }
-.form-group input[readonly] { color: var(--text2); }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
-.preview-box { background: var(--bg2); border-radius: var(--radius-sm); padding: 11px 12px; font-size: 13px; color: var(--text2); margin-bottom: 14px; line-height: 1.6; }
-.sheet-footer { display: flex; gap: 10px; padding: 16px 20px 0; }
-.sheet-footer .btn { flex: 1; justify-content: center; padding: 13px; font-size: 15px; border-radius: var(--radius); }
-.info-box { border: 0.5px solid var(--purple-text); border-radius: var(--radius-sm); padding: 12px; background: var(--purple-bg); margin-bottom: 16px; }
-.info-box-title { font-size: 13px; font-weight: 600; color: var(--purple-text); margin-bottom: 4px; }
-.info-box-body { font-size: 12px; color: var(--purple-text); line-height: 1.6; opacity: 0.85; }
-.divider { border: none; border-top: 0.5px solid var(--border); margin: 14px 0; }
-.plan-card { border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
-.plan-row { display: flex; justify-content: space-between; align-items: center; }
-.hist-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
-.hist-row:last-child { border: none; }
-/* 學生名單表格 */
-.roster-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.roster-table th { background: var(--bg2); color: var(--text2); font-size: 11px; font-weight: 600; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border2); letter-spacing: 0.04em; position: sticky; top: 0; }
-.roster-table td { padding: 10px 10px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
-.roster-table tr:last-child td { border-bottom: none; }
-.roster-table tr:active td { background: var(--bg2); }
-.remaining-num { font-size: 15px; font-weight: 700; }
-.roster-wrap { border: 0.5px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue',sans-serif;background:var(--bg);color:var(--text);}
+.app{display:flex;flex-direction:column;height:100%;}
+.header{height:var(--header-h);padding:0 16px;display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-bottom:0.5px solid var(--border);padding-top:env(safe-area-inset-top,0);flex-shrink:0;}
+.header-title{font-size:17px;font-weight:600;}
+.header-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--bg2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);}
+.page{display:none;padding:16px;}
+.page.active{display:block;}
+.bottom-nav{height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom);background:var(--bg);border-top:0.5px solid var(--border);display:flex;flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--text3);transition:color 0.15s;border:none;background:none;padding-top:6px;}
+.nav-item.active{color:var(--accent);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-size:10px;font-weight:500;}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.student-name{font-size:16px;font-weight:600;}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.metric-card{background:var(--bg2);border-radius:var(--radius-sm);padding:12px;}
+.metric-lbl{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.metric-val{font-size:24px;font-weight:700;}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.badge{font-size:11px;padding:3px 8px;border-radius:99px;font-weight:500;white-space:nowrap;}
+.badge-new{background:var(--blue-bg);color:var(--blue-text);}
+.badge-old{background:var(--green-bg);color:var(--green-text);}
+.badge-friend{background:var(--amber-bg);color:var(--amber-text);}
+.badge-low{background:var(--red-bg);color:var(--red-text);}
+.badge-adj{background:var(--purple-bg);color:var(--purple-text);}
+.badge-trial{background:var(--pink-bg);color:var(--pink-text);}
+.tag-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.info-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);padding:5px 0;border-bottom:0.5px solid var(--border);}
+.info-row:last-child{border:none;}
+.info-row span:last-child{color:var(--text);font-weight:500;}
+.progress-bar{height:5px;background:var(--bg3);border-radius:99px;margin:8px 0 10px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:99px;}
+.btn{font-size:13px;padding:8px 14px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:500;}
+.btn-purple{background:var(--purple-bg);color:var(--purple-text);border-color:transparent;}
+.btn-danger{color:var(--red-text);border-color:var(--red-bg);}
+.btn-icon{width:36px;height:36px;padding:0;border-radius:50%;justify-content:center;font-size:16px;}
+.action-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+.section-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;margin:0 0 10px;}
+.empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:14px;}
+.search-bar{display:flex;gap:8px;margin-bottom:12px;align-items:center;}
+.search-bar input{flex:1;font-size:15px;padding:9px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit;}
+.search-bar select{font-size:13px;padding:9px 8px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-month{font-size:17px;font-weight:600;}
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+.cal-dow{text-align:center;font-size:11px;color:var(--text3);font-weight:500;padding:3px 0;}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-cell{min-height:44px;border-radius:var(--radius-sm);padding:4px;background:var(--bg2);cursor:pointer;display:flex;flex-direction:column;align-items:center;}
+.cal-cell.empty{background:transparent;cursor:default;}
+.cal-cell.today{border:1.5px solid var(--blue);background:var(--blue-bg);}
+.cal-cell.selected{border:1.5px solid var(--green);background:var(--green-bg);}
+.cal-day{font-size:13px;font-weight:500;}
+.cal-dots{display:flex;gap:2px;margin-top:2px;}
+.cal-dot{width:5px;height:5px;border-radius:50%;}
+.dot-sign{background:var(--green);}
+.dot-pay{background:var(--blue);}
+.day-detail{background:var(--bg2);border-radius:var(--radius);padding:14px;margin-top:12px;}
+.day-detail-title{font-size:14px;font-weight:600;margin-bottom:10px;}
+.day-event{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:0.5px solid var(--border);font-size:13px;}
+.day-event:last-child{border:none;}
+.htag{font-size:10px;padding:2px 7px;border-radius:99px;}
+.htag-pay{background:var(--blue-bg);color:var(--blue-text);}
+.htag-sign{background:var(--green-bg);color:var(--green-text);}
+.htag-adj{background:var(--purple-bg);color:var(--purple-text);}
+.sheet-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;}
+.sheet-overlay.open{display:block;}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-radius:20px 20px 0 0;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:101;padding-bottom:calc(var(--safe-bottom) + 16px);transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);}
+.sheet.open{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;background:var(--border2);border-radius:99px;margin:12px auto 4px;}
+.sheet-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;}
+.sheet-title{font-size:17px;font-weight:600;}
+.sheet-close{font-size:22px;color:var(--text3);background:none;border:none;cursor:pointer;line-height:1;padding:4px;}
+.sheet-body{padding:0 20px;}
+.form-group{margin-bottom:14px;}
+.form-group label{font-size:12px;color:var(--text2);margin-bottom:5px;display:block;font-weight:500;}
+.form-group input,.form-group select{width:100%;font-size:16px;padding:11px 12px;border-radius:var(--radius-sm);border:0.5px solid var(--border2);background:var(--bg2);color:var(--text);font-family:inherit;}
+.form-group input[readonly]{color:var(--text2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+.preview-box{background:var(--bg2);border-radius:var(--radius-sm);padding:11px 12px;font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.sheet-footer{display:flex;gap:10px;padding:16px 20px 0;}
+.sheet-footer .btn{flex:1;justify-content:center;padding:13px;font-size:15px;border-radius:var(--radius);}
+.info-box{border:0.5px solid var(--purple-text);border-radius:var(--radius-sm);padding:12px;background:var(--purple-bg);margin-bottom:16px;}
+.info-box-title{font-size:13px;font-weight:600;color:var(--purple-text);margin-bottom:4px;}
+.info-box-body{font-size:12px;color:var(--purple-text);line-height:1.6;opacity:0.85;}
+.divider{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
+.plan-card{border:0.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.plan-row{display:flex;justify-content:space-between;align-items:center;}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.hist-row:last-child{border:none;}
+.roster-table{width:100%;border-collapse:collapse;font-size:13px;}
+.roster-table th{background:var(--bg2);color:var(--text2);font-size:11px;font-weight:600;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);letter-spacing:0.04em;position:sticky;top:0;}
+.roster-table td{padding:10px 10px;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+.roster-table tr:last-child td{border-bottom:none;}
+.remaining-num{font-size:15px;font-weight:700;}
+.roster-wrap{border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+/* 簽到紀錄展開區 */
+.signin-log{margin-top:10px;border-top:0.5px solid var(--border);padding-top:10px;display:none;}
+.signin-log.open{display:block;}
+.signin-log-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;}
+.signin-log-empty{font-size:13px;color:var(--text3);padding:6px 0;}
+.signin-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border);}
+.signin-item:last-child{border:none;}
+.signin-date{font-size:13px;font-weight:500;color:var(--text);}
+.signin-note{font-size:12px;color:var(--text3);}
+.signin-after{font-size:12px;color:var(--text2);}
+.toggle-log-btn{font-size:12px;color:var(--blue-text);background:none;border:none;cursor:pointer;padding:0;font-family:inherit;display:flex;align-items:center;gap:3px;}
 </style>
 </head>
 <body>
@@ -151,15 +159,13 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
     <button class="header-btn" id="header-action-btn" onclick="headerAction()" style="display:none">＋</button>
   </div>
   <div class="content">
-
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="metric-grid" id="dash-metrics"></div>
       <p class="section-title">堂數即將用完（≤ 3 堂）</p>
       <div id="low-list"></div>
     </div>
-
-    <!-- ROSTER 學生名單 -->
+    <!-- ROSTER -->
     <div class="page" id="page-roster">
       <div class="search-bar">
         <input type="text" id="roster-search" placeholder="搜尋學員..." oninput="renderRoster()">
@@ -172,20 +178,11 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
       </div>
       <div class="roster-wrap">
         <table class="roster-table">
-          <thead>
-            <tr>
-              <th>姓名</th>
-              <th>類型</th>
-              <th>課程</th>
-              <th>期數</th>
-              <th>剩餘</th>
-            </tr>
-          </thead>
+          <thead><tr><th>姓名</th><th>類型</th><th>課程</th><th>期數</th><th>剩餘</th></tr></thead>
           <tbody id="roster-body"></tbody>
         </table>
       </div>
     </div>
-
     <!-- CALENDAR -->
     <div class="page" id="page-calendar">
       <div class="cal-nav">
@@ -204,7 +201,6 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
         <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="openSignin(null,calSelected)">✓ 為所選日期新增簽到</button>
       </div>
     </div>
-
     <!-- STUDENTS -->
     <div class="page" id="page-students">
       <div class="search-bar">
@@ -218,17 +214,15 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
       </div>
       <div id="students-list"></div>
     </div>
-
     <!-- PLANS -->
     <div class="page" id="page-plans">
       <p class="section-title">2026 年學費方案（每期 8 堂）</p>
       <div id="plans-list"></div>
       <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--text2);margin-top:4px;line-height:1.7;">
-        ※ 體驗課為單堂計費，無一期8堂總價。<br>
+        ※ 體驗課為單堂計費。<br>
         ※ 2025 年舊生一對一正式課為 $1,750/堂，一期 $14,000。
       </div>
     </div>
-
     <!-- HISTORY -->
     <div class="page" id="page-history">
       <div class="search-bar">
@@ -242,38 +236,22 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
       </div>
       <div id="history-list"></div>
     </div>
-
   </div>
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
-      <span class="nav-icon">⊞</span><span class="nav-label">總覽</span>
-    </button>
-    <button class="nav-item" onclick="showPage('roster')" id="nav-roster">
-      <span class="nav-icon">📋</span><span class="nav-label">名單</span>
-    </button>
-    <button class="nav-item" onclick="showPage('calendar')" id="nav-calendar">
-      <span class="nav-icon">📅</span><span class="nav-label">行事曆</span>
-    </button>
-    <button class="nav-item" onclick="showPage('students')" id="nav-students">
-      <span class="nav-icon">👤</span><span class="nav-label">學員</span>
-    </button>
-    <button class="nav-item" onclick="showPage('plans')" id="nav-plans">
-      <span class="nav-icon">💰</span><span class="nav-label">方案</span>
-    </button>
-    <button class="nav-item" onclick="showPage('history')" id="nav-history">
-      <span class="nav-icon">🗒</span><span class="nav-label">紀錄</span>
-    </button>
+    <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">⊞</span><span class="nav-label">總覽</span></button>
+    <button class="nav-item" onclick="showPage('roster')" id="nav-roster"><span class="nav-icon">📋</span><span class="nav-label">名單</span></button>
+    <button class="nav-item" onclick="showPage('calendar')" id="nav-calendar"><span class="nav-icon">📅</span><span class="nav-label">行事曆</span></button>
+    <button class="nav-item" onclick="showPage('students')" id="nav-students"><span class="nav-icon">👤</span><span class="nav-label">學員</span></button>
+    <button class="nav-item" onclick="showPage('plans')" id="nav-plans"><span class="nav-icon">💰</span><span class="nav-label">方案</span></button>
+    <button class="nav-item" onclick="showPage('history')" id="nav-history"><span class="nav-icon">🗒</span><span class="nav-label">紀錄</span></button>
   </nav>
 </div>
 
-<!-- SHEET: 新增/編輯學員 -->
+<!-- SHEETS -->
 <div class="sheet-overlay" id="overlay-student" onclick="closeSheet('sheet-student')"></div>
 <div class="sheet" id="sheet-student">
   <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <span class="sheet-title" id="sheet-student-title">新增學員</span>
-    <button class="sheet-close" onclick="closeSheet('sheet-student')">✕</button>
-  </div>
+  <div class="sheet-header"><span class="sheet-title" id="sheet-student-title">新增學員</span><button class="sheet-close" onclick="closeSheet('sheet-student')">✕</button></div>
   <div class="sheet-body">
     <div class="form-row">
       <div class="form-group"><label>姓名</label><input type="text" id="f-name" placeholder="學員姓名"></div>
@@ -291,40 +269,26 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
     <div class="form-group"><label>備註</label><input type="text" id="f-note" placeholder="選填"></div>
     <div class="preview-box" id="f-preview"></div>
   </div>
-  <div class="sheet-footer">
-    <button class="btn" onclick="closeSheet('sheet-student')">取消</button>
-    <button class="btn btn-primary" onclick="saveStudent()">儲存</button>
-  </div>
+  <div class="sheet-footer"><button class="btn" onclick="closeSheet('sheet-student')">取消</button><button class="btn btn-primary" onclick="saveStudent()">儲存</button></div>
 </div>
 
-<!-- SHEET: 簽到 -->
 <div class="sheet-overlay" id="overlay-signin" onclick="closeSheet('sheet-signin')"></div>
 <div class="sheet" id="sheet-signin">
   <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <span class="sheet-title">課堂簽到</span>
-    <button class="sheet-close" onclick="closeSheet('sheet-signin')">✕</button>
-  </div>
+  <div class="sheet-header"><span class="sheet-title">課堂簽到</span><button class="sheet-close" onclick="closeSheet('sheet-signin')">✕</button></div>
   <div class="sheet-body">
     <div class="form-group"><label>學員</label><select id="si-student" onchange="updateSiPreview()"><option value="">選擇學員</option></select></div>
     <div class="form-group"><label>簽到日期</label><input type="date" id="si-date"></div>
     <div class="form-group"><label>備註</label><input type="text" id="si-note" placeholder="選填"></div>
     <div class="preview-box" id="si-preview"></div>
   </div>
-  <div class="sheet-footer">
-    <button class="btn" onclick="closeSheet('sheet-signin')">取消</button>
-    <button class="btn btn-primary" onclick="saveSignin()">確認簽到</button>
-  </div>
+  <div class="sheet-footer"><button class="btn" onclick="closeSheet('sheet-signin')">取消</button><button class="btn btn-primary" onclick="saveSignin()">確認簽到</button></div>
 </div>
 
-<!-- SHEET: 新增期數 -->
 <div class="sheet-overlay" id="overlay-addsessions" onclick="closeSheet('sheet-addsessions')"></div>
 <div class="sheet" id="sheet-addsessions">
   <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <span class="sheet-title">新增期數 / 繳費</span>
-    <button class="sheet-close" onclick="closeSheet('sheet-addsessions')">✕</button>
-  </div>
+  <div class="sheet-header"><span class="sheet-title">新增期數 / 繳費</span><button class="sheet-close" onclick="closeSheet('sheet-addsessions')">✕</button></div>
   <div class="sheet-body">
     <div class="form-group"><label>學員</label><input type="text" id="as-name" readonly></div>
     <div class="form-row">
@@ -335,82 +299,49 @@ html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Helvet
     <div class="form-group"><label>備註</label><input type="text" id="as-note" placeholder="選填"></div>
     <div class="preview-box" id="as-preview"></div>
   </div>
-  <div class="sheet-footer">
-    <button class="btn" onclick="closeSheet('sheet-addsessions')">取消</button>
-    <button class="btn btn-primary" onclick="saveAddSessions()">確認</button>
-  </div>
+  <div class="sheet-footer"><button class="btn" onclick="closeSheet('sheet-addsessions')">取消</button><button class="btn btn-primary" onclick="saveAddSessions()">確認</button></div>
 </div>
 
-<!-- SHEET: 期數校正 -->
 <div class="sheet-overlay" id="overlay-adjust" onclick="closeSheet('sheet-adjust')"></div>
 <div class="sheet" id="sheet-adjust">
   <div class="sheet-handle"></div>
-  <div class="sheet-header">
-    <span class="sheet-title">期數校正</span>
-    <button class="sheet-close" onclick="closeSheet('sheet-adjust')">✕</button>
-  </div>
+  <div class="sheet-header"><span class="sheet-title">期數校正</span><button class="sheet-close" onclick="closeSheet('sheet-adjust')">✕</button></div>
   <div class="sheet-body">
-    <div class="info-box">
-      <div class="info-box-title">適用情境</div>
-      <div class="info-box-body">學員在使用系統前已上過幾期課，直接填入目前正確的狀態，系統自動記錄差異，不需補登歷史資料。</div>
-    </div>
+    <div class="info-box"><div class="info-box-title">適用情境</div><div class="info-box-body">學員在使用系統前已上過幾期課，直接填入目前正確的狀態，系統自動記錄差異，不需補登歷史資料。</div></div>
     <div class="form-group"><label>學員</label><input type="text" id="adj-name" readonly></div>
     <hr class="divider">
     <p class="section-title" style="margin-bottom:10px;">填入正確的現況</p>
     <div class="form-row">
-      <div class="form-group">
-        <label>實際已上堂數（含歷史）</label>
-        <input type="number" id="adj-used" min="0" oninput="adjPreview()">
-        <div class="form-hint">從開始上課至今總共幾堂</div>
-      </div>
-      <div class="form-group">
-        <label>目前剩餘堂數</label>
-        <input type="number" id="adj-remaining" min="0" oninput="adjPreview()">
-        <div class="form-hint">這期還剩幾堂沒上</div>
-      </div>
+      <div class="form-group"><label>實際已上堂數（含歷史）</label><input type="number" id="adj-used" min="0" oninput="adjPreview()"><div class="form-hint">從開始上課至今總共幾堂</div></div>
+      <div class="form-group"><label>目前剩餘堂數</label><input type="number" id="adj-remaining" min="0" oninput="adjPreview()"><div class="form-hint">這期還剩幾堂沒上</div></div>
     </div>
-    <div class="form-group">
-      <label>實際總期數（含歷史）</label>
-      <input type="number" id="adj-periods" min="1" oninput="adjPreview()">
-      <div class="form-hint">從第一期到現在共購買幾期</div>
-    </div>
+    <div class="form-group"><label>實際總期數（含歷史）</label><input type="number" id="adj-periods" min="1" oninput="adjPreview()"><div class="form-hint">從第一期到現在共購買幾期</div></div>
     <div class="preview-box" id="adj-preview"></div>
     <div class="form-group"><label>校正原因（備註）</label><input type="text" id="adj-note" placeholder="例：系統上線前已上第 1～3 期"></div>
   </div>
-  <div class="sheet-footer">
-    <button class="btn" onclick="closeSheet('sheet-adjust')">取消</button>
-    <button class="btn btn-primary" onclick="saveAdjust()">確認校正</button>
-  </div>
+  <div class="sheet-footer"><button class="btn" onclick="closeSheet('sheet-adjust')">取消</button><button class="btn btn-primary" onclick="saveAdjust()">確認校正</button></div>
 </div>
 
 <script>
-const SPP = 8; // Sessions Per Period
+const SPP=8;
 // 金額為每堂單價，一期總價 = 單堂價 × 8
-const PLANS = {
-  old:    { solo:{ trial:null, regular:1750 }, duo:{ trial:null, regular:3300 } },
-  new:    { solo:{ trial:1799, regular:1900 }, duo:{ trial:3000, regular:3400 } },
-  friend: { solo:{ trial:null, regular:1500 }, duo:{ trial:null, regular:2800 } }
+const PLANS={
+  old:{solo:{trial:null,regular:1750},duo:{trial:null,regular:3300}},
+  new:{solo:{trial:1799,regular:1900},duo:{trial:3000,regular:3400}},
+  friend:{solo:{trial:null,regular:1500},duo:{trial:null,regular:2800}}
 };
-const TL = {new:'新生', old:'舊生', friend:'親友'};
-const TB = {new:'badge-new', old:'badge-old', friend:'badge-friend'};
-const CL = {solo:'一對一', duo:'一對二'};
-const DOW = ['日','一','二','三','四','五','六'];
-
-let students=[], history=[], editingId=null, addSessionsId=null, adjustId=null;
-let calYear, calMonth, calSelected;
+const TL={new:'新生',old:'舊生',friend:'親友'};
+const TB={new:'badge-new',old:'badge-old',friend:'badge-friend'};
+const CL={solo:'一對一',duo:'一對二'};
+const DOW=['日','一','二','三','四','五','六'];
+let students=[],history=[],editingId=null,addSessionsId=null,adjustId=null;
+let calYear,calMonth,calSelected;
 
 function load(){try{students=JSON.parse(localStorage.getItem('coach_pwa_students')||'[]');history=JSON.parse(localStorage.getItem('coach_pwa_history')||'[]');}catch(e){students=[];history=[];}}
 function save(){try{localStorage.setItem('coach_pwa_students',JSON.stringify(students));localStorage.setItem('coach_pwa_history',JSON.stringify(history));}catch(e){}}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){if(!d)return '—';const p=d.split('-');return p[0]+'/'+p[1]+'/'+p[2];}
-function periodTotal(type,course,planType,periods){
-  const p=PLANS[type][course];
-  const perSession=planType==='trial'?p.trial:p.regular;
-  if(!perSession)return 0;
-  if(planType==='trial') return perSession; // 體驗課單堂計費
-  return perSession * SPP * periods; // 正式課：單堂價 × 8 × 期數
-}
 load();
 
 function showPage(p){
@@ -430,34 +361,21 @@ function showPage(p){
 }
 function headerAction(){openAddStudent();}
 
-/* DASHBOARD */
 function renderDashboard(){
-  const ts=students.length, active=students.filter(s=>s.remaining>0).length;
+  const ts=students.length,active=students.filter(s=>s.remaining>0).length;
   const rev=history.filter(h=>h.type==='payment').reduce((a,b)=>a+(b.amount||0),0);
   const signs=history.filter(h=>h.type==='signin').length;
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric-card"><div class="metric-lbl">學員總數</div><div class="metric-val">${ts}</div></div>
     <div class="metric-card"><div class="metric-lbl">有效學員</div><div class="metric-val">${active}</div></div>
     <div class="metric-card"><div class="metric-lbl">累計收入</div><div class="metric-val" style="font-size:18px;">$${rev.toLocaleString()}</div></div>
-    <div class="metric-card"><div class="metric-lbl">上課次數</div><div class="metric-val">${signs}</div><div class="metric-sub">堂</div></div>
-  `;
+    <div class="metric-card"><div class="metric-lbl">上課次數</div><div class="metric-val">${signs}</div><div class="metric-sub">堂</div></div>`;
   const low=students.filter(s=>s.remaining<=3);
   const el=document.getElementById('low-list');
   if(!low.length){el.innerHTML='<div class="empty">目前沒有學員堂數不足</div>';return;}
-  el.innerHTML=low.map(s=>`<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div><div class="student-name">${s.name}</div>
-      <div class="tag-row"><span class="badge ${TB[s.type]}">${TL[s.type]}</span><span class="badge" style="background:var(--bg3);color:var(--text2);">${CL[s.course]}</span></div></div>
-      <span class="badge badge-low">剩 ${s.remaining} 堂</span>
-    </div>
-    <div class="action-row">
-      <button class="btn btn-primary" onclick="openAddSessions('${s.id}')">＋ 續費</button>
-      <button class="btn" onclick="openSignin('${s.id}',null)">✓ 簽到</button>
-    </div>
-  </div>`).join('');
+  el.innerHTML=low.map(s=>`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="student-name">${s.name}</div><div class="tag-row"><span class="badge ${TB[s.type]}">${TL[s.type]}</span><span class="badge" style="background:var(--bg3);color:var(--text2);">${CL[s.course]}</span></div></div><span class="badge badge-low">剩 ${s.remaining} 堂</span></div><div class="action-row"><button class="btn btn-primary" onclick="openAddSessions('${s.id}')">＋ 續費</button><button class="btn" onclick="openSignin('${s.id}',null)">✓ 簽到</button></div></div>`).join('');
 }
 
-/* ROSTER 學生名單 */
 function renderRoster(){
   const q=(document.getElementById('roster-search')?.value||'').toLowerCase();
   const ft=document.getElementById('roster-filter')?.value||'';
@@ -466,7 +384,7 @@ function renderRoster(){
   if(!list.length){tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3);">尚無學員</td></tr>`;return;}
   tbody.innerHTML=list.map(s=>{
     const fc=s.remaining<=3?'var(--red)':s.remaining<=6?'var(--amber)':'var(--green)';
-    return `<tr onclick="showPage('students')" style="cursor:pointer;">
+    return `<tr style="cursor:pointer;" onclick="goToStudent('${s.id}')">
       <td><div style="font-weight:600;font-size:14px;">${s.name}</div>${s.adjusted?'<span class="badge badge-adj" style="font-size:10px;">已校正</span>':''}</td>
       <td><span class="badge ${TB[s.type]}">${TL[s.type]}</span></td>
       <td style="color:var(--text2);font-size:12px;">${CL[s.course]}</td>
@@ -476,7 +394,15 @@ function renderRoster(){
   }).join('');
 }
 
-/* CALENDAR */
+function goToStudent(id){
+  showPage('students');
+  // 展開該學員的簽到紀錄
+  setTimeout(()=>{
+    const logEl=document.getElementById('log-'+id);
+    if(logEl){logEl.classList.add('open');const card=logEl.closest('.card');if(card)card.scrollIntoView({behavior:'smooth',block:'start'});}
+  },100);
+}
+
 function initCal(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelected=today();}
 function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function getDatesWithEvents(){const m={};history.forEach(h=>{if(!m[h.date])m[h.date]={sign:false,pay:false};if(h.type==='signin')m[h.date].sign=true;if(h.type==='payment')m[h.date].pay=true;});return m;}
@@ -515,7 +441,6 @@ function renderDayDetail(ds){
   }).join('');
 }
 
-/* STUDENTS */
 function renderStudents(){
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   const ft=document.getElementById('filter-type')?.value||'';
@@ -527,6 +452,17 @@ function renderStudents(){
     const fc=s.remaining<=3?'var(--red)':s.remaining<=6?'var(--amber)':'var(--green)';
     const perSession=PLANS[s.type][s.course].regular;
     const periodPrice=perSession*SPP;
+    // 取出該學員的簽到紀錄，由新到舊
+    const signins=history.filter(h=>h.studentId===s.id&&h.type==='signin').reverse();
+    const signinRows=signins.length===0
+      ?'<div class="signin-log-empty">尚無簽到紀錄</div>'
+      :signins.map((h,i)=>`<div class="signin-item">
+          <div>
+            <span class="signin-date">${fmtDate(h.date)}</span>
+            ${h.note?`<span class="signin-note">・${h.note}</span>`:''}
+          </div>
+          <span class="signin-after">剩 ${h.remainingAfter} 堂</span>
+        </div>`).join('');
     return `<div class="card">
       <div class="card-header">
         <div><div class="student-name">${s.name}</div>
@@ -550,11 +486,25 @@ function renderStudents(){
         <button class="btn" onclick="editStudent('${s.id}')">✎</button>
         <button class="btn btn-danger" onclick="deleteStudent('${s.id}')">✕</button>
       </div>
+      <div class="signin-log" id="log-${s.id}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span class="signin-log-title">簽到紀錄（共 ${signins.length} 堂）</span>
+        </div>
+        ${signinRows}
+      </div>
+      <div style="margin-top:8px;text-align:center;">
+        <button class="toggle-log-btn" onclick="toggleLog('${s.id}',this)">▾ 查看簽到紀錄</button>
+      </div>
     </div>`;
   }).join('');
 }
 
-/* PLANS */
+function toggleLog(id,btn){
+  const el=document.getElementById('log-'+id);
+  const isOpen=el.classList.toggle('open');
+  btn.textContent=isOpen?'▴ 收起簽到紀錄':'▾ 查看簽到紀錄';
+}
+
 function renderPlans(){
   const rows=[{type:'old',course:'solo'},{type:'old',course:'duo'},{type:'new',course:'solo'},{type:'new',course:'duo'},{type:'friend',course:'solo'},{type:'friend',course:'duo'}];
   const bc={old:'badge-old',new:'badge-new',friend:'badge-friend'};
@@ -562,27 +512,17 @@ function renderPlans(){
     const p=PLANS[r.type][r.course];
     const periodPrice=p.regular*SPP;
     return `<div class="plan-card">
-      <div class="plan-row" style="margin-bottom:10px;">
-        <span class="badge ${bc[r.type]}">${TL[r.type]}</span>
-        <span style="font-size:12px;color:var(--text2);">${CL[r.course]}</span>
-      </div>
+      <div class="plan-row" style="margin-bottom:10px;"><span class="badge ${bc[r.type]}">${TL[r.type]}</span><span style="font-size:12px;color:var(--text2);">${CL[r.course]}</span></div>
       ${p.trial?`<div style="font-size:13px;color:var(--text2);margin-bottom:6px;">體驗：<strong>$${p.trial.toLocaleString()}</strong> / 單堂</div>`:'<div style="font-size:12px;color:var(--text3);margin-bottom:6px;">體驗：無</div>'}
       <div style="display:flex;justify-content:space-between;align-items:baseline;">
-        <div>
-          <div style="font-size:13px;color:var(--text2);">單堂</div>
-          <div style="font-size:18px;font-weight:700;">$${p.regular.toLocaleString()}</div>
-        </div>
+        <div><div style="font-size:13px;color:var(--text2);">單堂</div><div style="font-size:18px;font-weight:700;">$${p.regular.toLocaleString()}</div></div>
         <div style="font-size:18px;color:var(--text3);">×8 =</div>
-        <div style="text-align:right;">
-          <div style="font-size:13px;color:var(--text2);">一期（8堂）</div>
-          <div style="font-size:18px;font-weight:700;color:var(--green);">$${periodPrice.toLocaleString()}</div>
-        </div>
+        <div style="text-align:right;"><div style="font-size:13px;color:var(--text2);">一期（8堂）</div><div style="font-size:18px;font-weight:700;color:var(--green);">$${periodPrice.toLocaleString()}</div></div>
       </div>
     </div>`;
   }).join('');
 }
 
-/* HISTORY */
 function renderHistory(){
   const hfs=document.getElementById('hf-student');
   const cur=hfs?hfs.value:'';
@@ -602,11 +542,9 @@ function renderHistory(){
   }).join('');
 }
 
-/* SHEETS */
 function openSheet(id){document.getElementById('overlay-'+id.replace('sheet-','')).classList.add('open');setTimeout(()=>document.getElementById(id).classList.add('open'),10);}
 function closeSheet(id){document.getElementById(id).classList.remove('open');setTimeout(()=>document.getElementById('overlay-'+id.replace('sheet-','')).classList.remove('open'),300);}
 
-/* STUDENT CRUD */
 function openAddStudent(){editingId=null;document.getElementById('sheet-student-title').textContent='新增學員';document.getElementById('f-name').value='';document.getElementById('f-type').value='new';document.getElementById('f-course').value='solo';document.getElementById('f-periods').value=1;document.getElementById('f-note').value='';document.getElementById('f-paydate').value=today();updatePlanOpts();openSheet('sheet-student');}
 function editStudent(id){const s=students.find(st=>st.id===id);if(!s)return;editingId=id;document.getElementById('sheet-student-title').textContent='編輯學員';document.getElementById('f-name').value=s.name;document.getElementById('f-type').value=s.type;document.getElementById('f-course').value=s.course;document.getElementById('f-plan').value=s.planType||'regular';document.getElementById('f-periods').value=s.totalPeriods||1;document.getElementById('f-amount').value='';document.getElementById('f-note').value=s.note||'';document.getElementById('f-paydate').value=s.lastPayDate||today();updatePlanOpts();openSheet('sheet-student');}
 function updatePlanOpts(){
@@ -627,13 +565,10 @@ function autoFill(){
   const perSession=planType==='trial'?p.trial:p.regular;
   const periods=parseInt(document.getElementById('f-periods').value)||1;
   if(planType==='trial'){
-    // 體驗課：單堂計費
     document.getElementById('f-amount').value=perSession||'';
     document.getElementById('f-preview').textContent=`體驗課 1 堂・$${(perSession||0).toLocaleString()}`;
-  } else {
-    // 正式課：單堂價 × 8 × 期數
-    const periodPrice=perSession*SPP;
-    const total=periodPrice*periods;
+  }else{
+    const total=perSession*SPP*periods;
     document.getElementById('f-amount').value=total||'';
     document.getElementById('f-preview').textContent=`${periods} 期 × （$${perSession.toLocaleString()} × 8堂）= $${total.toLocaleString()}`;
   }
@@ -650,6 +585,7 @@ function saveStudent(){
   const note=document.getElementById('f-note').value.trim();
   const paydate=document.getElementById('f-paydate').value||today();
   if(editingId){
+    // 編輯時只更新基本資料，不動堂數和歷史
     const s=students.find(st=>st.id===editingId);
     s.name=name;s.type=type;s.course=course;s.planType=planType;s.note=note;
   }else{
@@ -661,12 +597,21 @@ function saveStudent(){
 }
 function deleteStudent(id){if(!confirm('確定刪除此學員？'))return;students=students.filter(s=>s.id!==id);save();renderStudents();renderDashboard();}
 
-/* SIGNIN */
 function openSignin(studentId,dateStr){const sel=document.getElementById('si-student');sel.innerHTML='<option value="">選擇學員</option>'+students.map(s=>`<option value="${s.id}" ${s.id===studentId?'selected':''}>${s.name}（剩 ${s.remaining} 堂）</option>`).join('');document.getElementById('si-date').value=dateStr||today();document.getElementById('si-note').value='';updateSiPreview();openSheet('sheet-signin');}
 function updateSiPreview(){const sid=document.getElementById('si-student').value;const s=students.find(st=>st.id===sid);const el=document.getElementById('si-preview');if(!s){el.textContent='';return;}el.textContent=`目前剩餘 ${s.remaining} 堂，簽到後剩 ${s.remaining-1} 堂`;el.style.color=s.remaining<=1?'var(--red)':'var(--text2)';}
-function saveSignin(){const sid=document.getElementById('si-student').value;if(!sid){alert('請選擇學員');return;}const s=students.find(st=>st.id===sid);if(!s)return;if(s.remaining<=0){alert('此學員已無剩餘堂數，請先續費。');return;}s.remaining--;s.totalUsed++;const date=document.getElementById('si-date').value||today();const note=document.getElementById('si-note').value.trim();history.push({id:genId(),studentId:s.id,type:'signin',date,remainingAfter:s.remaining,note});save();closeSheet('sheet-signin');renderStudents();renderDashboard();if(calSelected===date)renderDayDetail(date);}
+function saveSignin(){
+  const sid=document.getElementById('si-student').value;
+  if(!sid){alert('請選擇學員');return;}
+  const s=students.find(st=>st.id===sid);if(!s)return;
+  if(s.remaining<=0){alert('此學員已無剩餘堂數，請先續費。');return;}
+  s.remaining--;s.totalUsed++;
+  const date=document.getElementById('si-date').value||today();
+  const note=document.getElementById('si-note').value.trim();
+  history.push({id:genId(),studentId:s.id,type:'signin',date,remainingAfter:s.remaining,note});
+  save();closeSheet('sheet-signin');renderStudents();renderDashboard();
+  if(calSelected===date)renderDayDetail(date);
+}
 
-/* ADD SESSIONS */
 function openAddSessions(id){
   addSessionsId=id;
   const s=students.find(st=>st.id===id);
@@ -685,17 +630,25 @@ function asAutoFill(){
   const el=document.getElementById('as-preview');
   if(s){
     const perSession=PLANS[s.type][s.course].regular;
-    const periodPrice=perSession*SPP;
-    const total=periodPrice*periods;
+    const total=perSession*SPP*periods;
     document.getElementById('as-amount').value=total;
     el.textContent=`${periods} 期 × （$${perSession.toLocaleString()} × 8堂）= $${total.toLocaleString()}`;
-  } else {
+  }else{
     el.textContent=`${periods} 期・共 ${sessions} 堂`;
   }
 }
-function saveAddSessions(){const s=students.find(st=>st.id===addSessionsId);if(!s)return;const periods=parseInt(document.getElementById('as-periods').value)||1;const sessions=periods*SPP;const amount=parseInt(document.getElementById('as-amount').value)||0;const note=document.getElementById('as-note').value.trim();const paydate=document.getElementById('as-paydate').value||today();s.remaining+=sessions;s.totalSessions+=sessions;s.totalPeriods=(s.totalPeriods||1)+periods;s.lastPayDate=paydate;history.push({id:genId(),studentId:s.id,type:'payment',date:paydate,amount,periods,note:note||'續費新增期數'});save();closeSheet('sheet-addsessions');renderStudents();renderDashboard();}
+function saveAddSessions(){
+  const s=students.find(st=>st.id===addSessionsId);if(!s)return;
+  const periods=parseInt(document.getElementById('as-periods').value)||1;
+  const sessions=periods*SPP;
+  const amount=parseInt(document.getElementById('as-amount').value)||0;
+  const note=document.getElementById('as-note').value.trim();
+  const paydate=document.getElementById('as-paydate').value||today();
+  s.remaining+=sessions;s.totalSessions+=sessions;s.totalPeriods=(s.totalPeriods||1)+periods;s.lastPayDate=paydate;
+  history.push({id:genId(),studentId:s.id,type:'payment',date:paydate,amount,periods,note:note||'續費新增期數'});
+  save();closeSheet('sheet-addsessions');renderStudents();renderDashboard();
+}
 
-/* ADJUST */
 function openAdjust(id){adjustId=id;const s=students.find(st=>st.id===id);document.getElementById('adj-name').value=s.name;document.getElementById('adj-used').value=s.totalUsed;document.getElementById('adj-remaining').value=s.remaining;document.getElementById('adj-periods').value=s.totalPeriods||1;document.getElementById('adj-note').value='';adjPreview();openSheet('sheet-adjust');}
 function adjPreview(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const du=nu-s.totalUsed,dr=nr-s.remaining,dp=np-(s.totalPeriods||1);const el=document.getElementById('adj-preview');let txt=`校正後：第 ${np} 期・已上 ${nu} 堂・剩餘 ${nr} 堂\n`;const parts=[];if(dp!==0)parts.push(`期數 ${dp>0?'+':''}${dp}`);if(du!==0)parts.push(`已上 ${du>0?'+':''}${du}`);if(dr!==0)parts.push(`剩餘 ${dr>0?'+':''}${dr}`);txt+=parts.length?`差異：${parts.join('、')}`:'與現有資料相同';el.textContent=txt;}
 function saveAdjust(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const note=document.getElementById('adj-note').value.trim();history.push({id:genId(),studentId:s.id,type:'adjust',date:today(),fromUsed:s.totalUsed,fromRemaining:s.remaining,fromPeriods:s.totalPeriods||1,toUsed:nu,toRemaining:nr,toPeriods:np,note:note||'期數校正'});s.totalUsed=nu;s.remaining=nr;s.totalPeriods=np;s.totalSessions=nu+nr;s.adjusted=true;save();closeSheet('sheet-adjust');renderStudents();renderDashboard();}
