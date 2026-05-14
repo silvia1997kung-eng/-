@@ -696,4 +696,13 @@ function asAutoFill(){
 function saveAddSessions(){const s=students.find(st=>st.id===addSessionsId);if(!s)return;const periods=parseInt(document.getElementById('as-periods').value)||1;const sessions=periods*SPP;const amount=parseInt(document.getElementById('as-amount').value)||0;const note=document.getElementById('as-note').value.trim();const paydate=document.getElementById('as-paydate').value||today();s.remaining+=sessions;s.totalSessions+=sessions;s.totalPeriods=(s.totalPeriods||1)+periods;s.lastPayDate=paydate;history.push({id:genId(),studentId:s.id,type:'payment',date:paydate,amount,periods,note:note||'續費新增期數'});save();closeSheet('sheet-addsessions');renderStudents();renderDashboard();}
 
 /* ADJUST */
-function openAdjust(id){adjustId=id;const s=students.find(st=>st.id===id);document.getElementById('adj-name').value=s.name;document.getElementById('adj-used').value=s.totalUsed;document.getElementById('adj-re
+function openAdjust(id){adjustId=id;const s=students.find(st=>st.id===id);document.getElementById('adj-name').value=s.name;document.getElementById('adj-used').value=s.totalUsed;document.getElementById('adj-remaining').value=s.remaining;document.getElementById('adj-periods').value=s.totalPeriods||1;document.getElementById('adj-note').value='';adjPreview();openSheet('sheet-adjust');}
+function adjPreview(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const du=nu-s.totalUsed,dr=nr-s.remaining,dp=np-(s.totalPeriods||1);const el=document.getElementById('adj-preview');let txt=`校正後：第 ${np} 期・已上 ${nu} 堂・剩餘 ${nr} 堂\n`;const parts=[];if(dp!==0)parts.push(`期數 ${dp>0?'+':''}${dp}`);if(du!==0)parts.push(`已上 ${du>0?'+':''}${du}`);if(dr!==0)parts.push(`剩餘 ${dr>0?'+':''}${dr}`);txt+=parts.length?`差異：${parts.join('、')}`:'與現有資料相同';el.textContent=txt;}
+function saveAdjust(){const s=students.find(st=>st.id===adjustId);if(!s)return;const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const note=document.getElementById('adj-note').value.trim();history.push({id:genId(),studentId:s.id,type:'adjust',date:today(),fromUsed:s.totalUsed,fromRemaining:s.remaining,fromPeriods:s.totalPeriods||1,toUsed:nu,toRemaining:nr,toPeriods:np,note:note||'期數校正'});s.totalUsed=nu;s.remaining=nr;s.totalPeriods=np;s.totalSessions=nu+nr;s.adjusted=true;save();closeSheet('sheet-adjust');renderStudents();renderDashboard();}
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+initCal();
+showPage('dashboard');
+</script>
+</body>
+</html>
