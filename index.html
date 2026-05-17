@@ -306,31 +306,32 @@ function setSyncStatus(s,msg){
   txt.textContent=msg;
 }
 
-// JSONP 呼叫
-function jsonp(url){
+// iframe + postMessage 方式呼叫 Apps Script
+function callScript(params){
   return new Promise((resolve,reject)=>{
-    const cbName='cb_'+Date.now();
-    const script=document.createElement('script');
-    script.crossOrigin='anonymous';
+    const iframe=document.createElement('iframe');
+    iframe.style.cssText='display:none;position:fixed;bottom:0;right:0;width:1px;height:1px;';
     const timer=setTimeout(()=>{
-      delete window[cbName];
-      if(document.body.contains(script))document.body.removeChild(script);
+      window.removeEventListener('message',handler);
+      if(document.body.contains(iframe))document.body.removeChild(iframe);
       reject(new Error('Timeout'));
-    },20000);
-    window[cbName]=function(data){
-      clearTimeout(timer);
-      delete window[cbName];
-      if(document.body.contains(script))document.body.removeChild(script);
-      resolve(data);
-    };
-    script.src=url+(url.includes('?')?'&':'?')+'callback='+cbName+'&t='+Date.now();
-    script.onerror=(e)=>{
-      clearTimeout(timer);
-      delete window[cbName];
-      if(document.body.contains(script))document.body.removeChild(script);
-      reject(new Error('Script error'));
-    };
-    document.body.appendChild(script);
+    },25000);
+    function handler(e){
+      try{
+        const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
+        if(d&&(d.students!==undefined||d.history!==undefined||d.ok!==undefined||d.error!==undefined)){
+          clearTimeout(timer);
+          window.removeEventListener('message',handler);
+          if(document.body.contains(iframe))document.body.removeChild(iframe);
+          resolve(d);
+        }
+      }catch(err){}
+    }
+    window.addEventListener('message',handler);
+    let url=SCRIPT_URL+'?';
+    for(const k in params)url+=encodeURIComponent(k)+'='+params[k]+'&';
+    iframe.src=url;
+    document.body.appendChild(iframe);
   });
 }
 
@@ -353,7 +354,7 @@ function saveLocal(){
 async function loadFromCloud(){
   setSyncStatus('loading','同步中...');
   try{
-    const data=await jsonp(SCRIPT_URL+'?action=getData');
+    const data=await callScript({action:'getData'});
     if(data.error)throw new Error(data.error);
     students=(data.students||[]).map(fixTypes);
     history=(data.history||[]).map(fixTypes);
@@ -374,7 +375,7 @@ async function saveToCloud(){
   saveLocal();
   try{
     const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const data=await jsonp(SCRIPT_URL+'?action=saveData&payload='+payload);
+    const data=await callScript({action:'saveData',payload});
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
@@ -390,7 +391,7 @@ async function uploadLocalData(){
   setSyncStatus('loading','上傳中...');
   try{
     const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const data=await jsonp(SCRIPT_URL+'?action=saveData&payload='+payload);
+    const data=await callScript({action:'saveData',payload});
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
