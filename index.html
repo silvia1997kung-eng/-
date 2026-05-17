@@ -308,20 +308,15 @@ function setSyncStatus(s,msg){
 
 function fixTypes(obj){
   const numKeys=['remaining','totalSessions','totalPeriods','totalUsed','amount','periods','remainingAfter','fromUsed','fromRemaining','fromPeriods','toUsed','toRemaining','toPeriods'];
-  const boolKeys=['adjusted'];
   const r={...obj};
   numKeys.forEach(k=>{if(r[k]!==undefined&&r[k]!=='')r[k]=Number(r[k]);});
-  boolKeys.forEach(k=>{if(r[k]!==undefined)r[k]=r[k]==='TRUE'||r[k]===true||r[k]==='true';});
+  if(r.adjusted!==undefined)r.adjusted=r.adjusted==='TRUE'||r.adjusted===true||r.adjusted==='true';
   return r;
 }
 
 function getLocal(){
-  try{
-    return {
-      students:JSON.parse(localStorage.getItem('coach_pwa_students')||'[]'),
-      history:JSON.parse(localStorage.getItem('coach_pwa_history')||'[]')
-    };
-  }catch(e){return {students:[],history:[]};}
+  try{return{students:JSON.parse(localStorage.getItem('coach_pwa_students')||'[]'),history:JSON.parse(localStorage.getItem('coach_pwa_history')||'[]')};}
+  catch(e){return{students:[],history:[]};}
 }
 function saveLocal(){
   try{localStorage.setItem('coach_pwa_students',JSON.stringify(students));localStorage.setItem('coach_pwa_history',JSON.stringify(history));}catch(e){}
@@ -330,11 +325,12 @@ function saveLocal(){
 async function loadFromCloud(){
   setSyncStatus('loading','同步中...');
   try{
-    const res=await fetch(SCRIPT_URL+'?action=getData');
+    const res=await fetch(SCRIPT_URL+'?action=getData&t='+Date.now());
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     students=(data.students||[]).map(fixTypes);
     history=(data.history||[]).map(fixTypes);
+    saveLocal();
     setSyncStatus('ok','已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
     renderCurrentPage();
   }catch(e){
@@ -350,11 +346,8 @@ async function saveToCloud(){
   setSyncStatus('loading','儲存中...');
   saveLocal();
   try{
-    const res=await fetch(SCRIPT_URL+'?action=saveData',{
-      method:'POST',
-      body:JSON.stringify({students,history}),
-      headers:{'Content-Type':'application/json'}
-    });
+    const payload=encodeURIComponent(JSON.stringify({students,history}));
+    const res=await fetch(SCRIPT_URL+'?action=saveData&payload='+payload);
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
@@ -370,18 +363,15 @@ async function uploadLocalData(){
   history=local.history;
   setSyncStatus('loading','上傳中...');
   try{
-    const res=await fetch(SCRIPT_URL+'?action=saveData',{
-      method:'POST',
-      body:JSON.stringify({students,history}),
-      headers:{'Content-Type':'application/json'}
-    });
+    const payload=encodeURIComponent(JSON.stringify({students,history}));
+    const res=await fetch(SCRIPT_URL+'?action=saveData&payload='+payload);
     const data=await res.json();
     if(data.error)throw new Error(data.error);
-    setSyncStatus('ok','上傳成功！');
+    setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
     renderCurrentPage();
   }catch(e){
-    setSyncStatus('err','上傳失敗，請重試');
+    setSyncStatus('err','上傳失敗：'+e.message);
   }
 }
 
@@ -607,17 +597,15 @@ function saveAdjust(){
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
 initCal();
 
-// 啟動：先檢查本機有沒有舊資料
 const _local=getLocal();
 if(_local.students.length>0){
   students=_local.students;
   history=_local.history;
   renderCurrentPage();
   setSyncStatus('err','偵測到本機資料，請上傳到雲端');
-  const banner=document.getElementById('upload-banner');
   document.getElementById('upload-banner-text').textContent=`⚠️ 偵測到 ${_local.students.length} 位學員的本機資料`;
-  banner.style.display='flex';
-} else {
+  document.getElementById('upload-banner').style.display='flex';
+}else{
   loadFromCloud();
 }
 </script>
