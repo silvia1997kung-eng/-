@@ -289,7 +289,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 </div>
 
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbz43rox0kpyKdUMshl40CE21VP9_3a6MDpJ3kB6egF3gguH407WKmxyTvbvaUuOqZuU/exec';
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxpXeeAPAtTiD9x6hXZDaOfMRXial2M9JMgs-WkJTqLLTx9hSabUT20rDmMeQ_DOvI/exec';
 const SPP=8;
 const PLANS={old:{solo:{trial:null,regular:1750},duo:{trial:null,regular:3300}},new:{solo:{trial:1799,regular:1900},duo:{trial:3000,regular:3400}},friend:{solo:{trial:null,regular:1500},duo:{trial:null,regular:2800}}};
 const TL={new:'新生',old:'舊生',friend:'親友'};
@@ -306,7 +306,7 @@ function setSyncStatus(s,msg){
   txt.textContent=msg;
 }
 
-// iframe + postMessage 方式呼叫 Apps Script
+// iframe + postMessage
 function callScript(params){
   return new Promise((resolve,reject)=>{
     const iframe=document.createElement('iframe');
@@ -315,11 +315,11 @@ function callScript(params){
       window.removeEventListener('message',handler);
       if(document.body.contains(iframe))document.body.removeChild(iframe);
       reject(new Error('Timeout'));
-    },25000);
+    },30000);
     function handler(e){
       try{
         const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
-        if(d&&(d.students!==undefined||d.history!==undefined||d.ok!==undefined||d.error!==undefined)){
+        if(d&&typeof d==='object'&&(d.students!==undefined||d.history!==undefined||d.ok!==undefined||d.error!==undefined)){
           clearTimeout(timer);
           window.removeEventListener('message',handler);
           if(document.body.contains(iframe))document.body.removeChild(iframe);
@@ -329,7 +329,9 @@ function callScript(params){
     }
     window.addEventListener('message',handler);
     let url=SCRIPT_URL+'?';
-    for(const k in params)url+=encodeURIComponent(k)+'='+params[k]+'&';
+    for(const k in params){
+      url+=encodeURIComponent(k)+'='+params[k]+'&';
+    }
     iframe.src=url;
     document.body.appendChild(iframe);
   });
@@ -374,9 +376,11 @@ async function saveToCloud(){
   setSyncStatus('loading','儲存中...');
   saveLocal();
   try{
-    const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const data=await callScript({action:'saveData',payload});
-    if(data.error)throw new Error(data.error);
+    // 分兩次傳送，避免網址太長
+    const r1=await callScript({action:'saveStudents',payload:encodeURIComponent(JSON.stringify(students))});
+    if(r1.error)throw new Error(r1.error);
+    const r2=await callScript({action:'saveHistory',payload:encodeURIComponent(JSON.stringify(history))});
+    if(r2.error)throw new Error(r2.error);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
     setSyncStatus('err','雲端儲存失敗，已存本機');
@@ -388,11 +392,13 @@ async function uploadLocalData(){
   if(!local.students.length){alert('找不到本機資料');return;}
   students=local.students;
   history=local.history;
-  setSyncStatus('loading','上傳中...');
+  setSyncStatus('loading','上傳中... (1/2)');
   try{
-    const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const data=await callScript({action:'saveData',payload});
-    if(data.error)throw new Error(data.error);
+    const r1=await callScript({action:'saveStudents',payload:encodeURIComponent(JSON.stringify(students))});
+    if(r1.error)throw new Error(r1.error);
+    setSyncStatus('loading','上傳中... (2/2)');
+    const r2=await callScript({action:'saveHistory',payload:encodeURIComponent(JSON.stringify(history))});
+    if(r2.error)throw new Error(r2.error);
     setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
     renderCurrentPage();
