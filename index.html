@@ -306,6 +306,28 @@ function setSyncStatus(s,msg){
   txt.textContent=msg;
 }
 
+// JSONP 呼叫
+function jsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cbName='cb_'+Date.now();
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{
+      delete window[cbName];
+      document.body.removeChild(script);
+      reject(new Error('Timeout'));
+    },15000);
+    window[cbName]=function(data){
+      clearTimeout(timer);
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.src=url+(url.includes('?')?'&':'?')+'callback='+cbName;
+    script.onerror=()=>{clearTimeout(timer);delete window[cbName];document.body.removeChild(script);reject(new Error('Script error'));};
+    document.body.appendChild(script);
+  });
+}
+
 function fixTypes(obj){
   const numKeys=['remaining','totalSessions','totalPeriods','totalUsed','amount','periods','remainingAfter','fromUsed','fromRemaining','fromPeriods','toUsed','toRemaining','toPeriods'];
   const r={...obj};
@@ -325,8 +347,7 @@ function saveLocal(){
 async function loadFromCloud(){
   setSyncStatus('loading','同步中...');
   try{
-    const res=await fetch(SCRIPT_URL+'?action=getData&t='+Date.now());
-    const data=await res.json();
+    const data=await jsonp(SCRIPT_URL+'?action=getData');
     if(data.error)throw new Error(data.error);
     students=(data.students||[]).map(fixTypes);
     history=(data.history||[]).map(fixTypes);
@@ -347,8 +368,7 @@ async function saveToCloud(){
   saveLocal();
   try{
     const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const res=await fetch(SCRIPT_URL+'?action=saveData&payload='+payload);
-    const data=await res.json();
+    const data=await jsonp(SCRIPT_URL+'?action=saveData&payload='+payload);
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
@@ -364,8 +384,7 @@ async function uploadLocalData(){
   setSyncStatus('loading','上傳中...');
   try{
     const payload=encodeURIComponent(JSON.stringify({students,history}));
-    const res=await fetch(SCRIPT_URL+'?action=saveData&payload='+payload);
-    const data=await res.json();
+    const data=await jsonp(SCRIPT_URL+'?action=saveData&payload='+payload);
     if(data.error)throw new Error(data.error);
     setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
