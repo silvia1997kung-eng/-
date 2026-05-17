@@ -347,13 +347,14 @@ async function saveToCloud(){
   setSyncStatus('loading','儲存中...');
   saveLocal();
   try{
-    const p1=encodeURIComponent(JSON.stringify(students));
-    const p2=encodeURIComponent(JSON.stringify(history));
-    const [r1,r2]=await Promise.all([
-      fetch(NETLIFY_FN+'?action=saveStudents&payload='+p1),
-      fetch(NETLIFY_FN+'?action=saveHistory&payload='+p2)
-    ]);
-    if(!r1.ok||!r2.ok)throw new Error('儲存失敗');
+    const res=await fetch(NETLIFY_FN+'?action=saveData',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({students,history})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
     setSyncStatus('err','雲端儲存失敗，已存本機');
@@ -367,15 +368,14 @@ async function uploadLocalData(){
   history=local.history;
   setSyncStatus('loading','上傳中...');
   try{
-    const p1=encodeURIComponent(JSON.stringify(students));
-    const p2=encodeURIComponent(JSON.stringify(history));
-    const [r1,r2]=await Promise.all([
-      fetch(NETLIFY_FN+'?action=saveStudents&payload='+p1),
-      fetch(NETLIFY_FN+'?action=saveHistory&payload='+p2)
-    ]);
-    if(!r1.ok||!r2.ok)throw new Error('上傳失敗');
-    const d1=await r1.json();const d2=await r2.json();
-    if(d1.error||d2.error)throw new Error(d1.error||d2.error);
+    const res=await fetch(NETLIFY_FN+'?action=saveData',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({students,history})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
     setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
     renderCurrentPage();
