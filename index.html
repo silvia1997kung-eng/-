@@ -289,7 +289,11 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 </div>
 
 <script>
-const SCRIPT_URL='https://script.google.com/macros/s/AKfycbxpXeeAPAtTiD9x6hXZDaOfMRXial2M9JMgs-WkJTqLLTx9hSabUT20rDmMeQ_DOvI/exec';
+// Google Sheets API 直接讀寫
+const API_KEY='AIzaSyBjuKbCdZM4g2C0GkzbHVJkmfJMZGkulGI';
+const SHEET_ID='1KhBNExGKX360EPlG8y6lYQ5T4yiC-mupl3juYOO7YsE';
+const BASE_URL='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID;
+
 const SPP=8;
 const PLANS={old:{solo:{trial:null,regular:1750},duo:{trial:null,regular:3300}},new:{solo:{trial:1799,regular:1900},duo:{trial:3000,regular:3400}},friend:{solo:{trial:null,regular:1500},duo:{trial:null,regular:2800}}};
 const TL={new:'新生',old:'舊生',friend:'親友'};
@@ -306,34 +310,38 @@ function setSyncStatus(s,msg){
   txt.textContent=msg;
 }
 
-// iframe + postMessage
-function callScript(params){
-  return new Promise((resolve,reject)=>{
-    const iframe=document.createElement('iframe');
-    iframe.style.cssText='display:none;position:fixed;bottom:0;right:0;width:1px;height:1px;';
-    const timer=setTimeout(()=>{
-      window.removeEventListener('message',handler);
-      if(document.body.contains(iframe))document.body.removeChild(iframe);
-      reject(new Error('Timeout'));
-    },30000);
-    function handler(e){
-      try{
-        const d=typeof e.data==='string'?JSON.parse(e.data):e.data;
-        if(d&&typeof d==='object'&&(d.students!==undefined||d.history!==undefined||d.ok!==undefined||d.error!==undefined)){
-          clearTimeout(timer);
-          window.removeEventListener('message',handler);
-          if(document.body.contains(iframe))document.body.removeChild(iframe);
-          resolve(d);
-        }
-      }catch(err){}
-    }
-    window.addEventListener('message',handler);
-    let url=SCRIPT_URL+'?';
-    for(const k in params){
-      url+=encodeURIComponent(k)+'='+params[k]+'&';
-    }
-    iframe.src=url;
-    document.body.appendChild(iframe);
+// 讀取試算表資料
+async function readSheet(sheetName){
+  const url=`${BASE_URL}/values/${encodeURIComponent(sheetName)}?key=${API_KEY}`;
+  const res=await fetch(url);
+  if(!res.ok)throw new Error('讀取失敗 '+res.status);
+  const data=await res.json();
+  const rows=data.values||[];
+  if(rows.length<2)return[];
+  const headers=rows[0];
+  return rows.slice(1).map(row=>{
+    const obj={};
+    headers.forEach((h,i)=>{obj[h]=row[i]||'';});
+    return obj;
+  });
+}
+
+// 寫入試算表（清空後全部重寫）
+async function writeSheet(sheetName,dataArr){
+  // 先清空
+  await fetch(`${BASE_URL}/values/${encodeURIComponent(sheetName)}:clear?key=${API_KEY}`,{method:'POST'});
+  if(!dataArr||dataArr.length===0)return;
+  const headers=Object.keys(dataArr[0]);
+  const rows=[headers,...dataArr.map(obj=>headers.map(h=>{
+    const v=obj[h];
+    if(v===null||v===undefined)return'';
+    if(typeof v==='boolean')return v?'TRUE':'FALSE';
+    return String(v);
+  }))];
+  await fetch(`${BASE_URL}/values/${encodeURIComponent(sheetName)}?valueInputOption=RAW&key=${API_KEY}`,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({values:rows})
   });
 }
 
@@ -356,10 +364,9 @@ function saveLocal(){
 async function loadFromCloud(){
   setSyncStatus('loading','同步中...');
   try{
-    const data=await callScript({action:'getData'});
-    if(data.error)throw new Error(data.error);
-    students=(data.students||[]).map(fixTypes);
-    history=(data.history||[]).map(fixTypes);
+    const [s,h]=await Promise.all([readSheet('students'),readSheet('history')]);
+    students=s.map(fixTypes);
+    history=h.map(fixTypes);
     saveLocal();
     setSyncStatus('ok','已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
     renderCurrentPage();
@@ -376,14 +383,10 @@ async function saveToCloud(){
   setSyncStatus('loading','儲存中...');
   saveLocal();
   try{
-    // 分兩次傳送，避免網址太長
-    const r1=await callScript({action:'saveStudents',payload:encodeURIComponent(JSON.stringify(students))});
-    if(r1.error)throw new Error(r1.error);
-    const r2=await callScript({action:'saveHistory',payload:encodeURIComponent(JSON.stringify(history))});
-    if(r2.error)throw new Error(r2.error);
+    await Promise.all([writeSheet('students',students),writeSheet('history',history)]);
     setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){
-    setSyncStatus('err','雲端儲存失敗，已存本機');
+    setSyncStatus('err','雲端儲存失敗，已存本機 '+e.message);
   }
 }
 
@@ -392,13 +395,9 @@ async function uploadLocalData(){
   if(!local.students.length){alert('找不到本機資料');return;}
   students=local.students;
   history=local.history;
-  setSyncStatus('loading','上傳中... (1/2)');
+  setSyncStatus('loading','上傳中...');
   try{
-    const r1=await callScript({action:'saveStudents',payload:encodeURIComponent(JSON.stringify(students))});
-    if(r1.error)throw new Error(r1.error);
-    setSyncStatus('loading','上傳中... (2/2)');
-    const r2=await callScript({action:'saveHistory',payload:encodeURIComponent(JSON.stringify(history))});
-    if(r2.error)throw new Error(r2.error);
+    await Promise.all([writeSheet('students',students),writeSheet('history',history)]);
     setSyncStatus('ok','上傳成功！資料已同步到雲端');
     document.getElementById('upload-banner').style.display='none';
     renderCurrentPage();
