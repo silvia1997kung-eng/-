@@ -6,6 +6,7 @@ exports.handler = async (event) => {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Content-Type': 'application/json'
   };
 
@@ -13,10 +14,10 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  const params = event.queryStringParameters || {};
-  const action = params.action;
-
   try {
+    const params = event.queryStringParameters || {};
+    const action = params.action;
+
     if (action === 'getData') {
       const [sRes, hRes] = await Promise.all([
         fetch(`${BASE}/values/students?key=${API_KEY}`),
@@ -24,15 +25,21 @@ exports.handler = async (event) => {
       ]);
       const sData = await sRes.json();
       const hData = await hRes.json();
-      const students = parseSheet(sData.values || []);
-      const history = parseSheet(hData.values || []);
-      return { statusCode: 200, headers, body: JSON.stringify({ students, history }) };
+      return {
+        statusCode: 200, headers,
+        body: JSON.stringify({
+          students: parseSheet(sData.values || []),
+          history: parseSheet(hData.values || [])
+        })
+      };
     }
 
-    if (action === 'saveStudents' || action === 'saveHistory') {
-      const sheetName = action === 'saveStudents' ? 'students' : 'history';
-      const data = JSON.parse(decodeURIComponent(params.payload || '[]'));
-      await clearAndWrite(sheetName, data);
+    if (action === 'saveData') {
+      const body = JSON.parse(event.body || '{}');
+      await Promise.all([
+        clearAndWrite('students', body.students || []),
+        clearAndWrite('history', body.history || [])
+      ]);
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }
 
