@@ -416,7 +416,7 @@ function renderStudents(){
     const signins=history.filter(h=>h.studentId===s.id&&h.type==='signin').reverse();
     const signinRows=signins.length===0
       ?'<div style="padding:12px;color:var(--text3);font-size:13px;text-align:center;">尚無簽到紀錄</div>'
-      :signins.map((h,i)=>`<div class="signin-log-row"><div style="display:flex;align-items:center;gap:10px;"><div class="signin-log-num">${signins.length-i}</div><div><div style="font-size:13px;font-weight:500;">${fmtDate(h.date)}</div>${h.note?`<div style="font-size:11px;color:var(--text3);">${h.note}</div>`:''}</div></div><div style="font-size:12px;color:var(--text2);">簽後剩 ${h.remainingAfter} 堂</div></div>`).join('');
+:signins.map((h,i)=>`<div class="signin-log-row"><div style="display:flex;align-items:center;gap:10px;"><div class="signin-log-num">${signins.length-i}</div><div><div style="font-size:13px;font-weight:500;">${fmtDate(h.date)}</div>${h.note?`<div style="font-size:11px;color:var(--text3);">${h.note}</div>`:''}</div></div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--text2);">簽後剩 ${h.remainingAfter} 堂</span><button onclick="deleteSignin('${h.id}','${s.id}')" style="font-size:11px;padding:3px 8px;border-radius:6px;border:0.5px solid var(--red-bg);background:none;color:var(--red-text);cursor:pointer;">刪除</button></div></div>`).join('');
     return `<div class="card" id="card-${s.id}">
       <div class="card-header"><div><div class="student-name">${s.name}</div><div class="tag-row"><span class="badge ${TB[s.type]}">${TL[s.type]}</span><span class="badge" style="background:var(--bg3);color:var(--text2);">${CL[s.course]}</span>${s.planType==='trial'?'<span class="badge badge-trial">體驗</span>':''}${s.adjusted?'<span class="badge badge-adj">已校正</span>':''}</div></div><div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:${fc};">${rem}</div><div style="font-size:10px;color:var(--text3);">堂剩餘</div></div></div>
       <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${fc};"></div></div>
@@ -527,7 +527,20 @@ function saveAdjust(){
   s.totalUsed=nu;s.remaining=nr;s.totalPeriods=np;s.totalSessions=nu+nr;s.adjusted=true;
   save();closeSheet('sheet-adjust');renderStudents();renderDashboard();
 }
-
+  
+function deleteSignin(historyId, studentId){
+  if(!confirm('確定刪除這筆簽到記錄？堂數將會還原。'))return;
+  const s=students.find(st=>st.id===studentId);
+  if(s){
+    s.remaining=Number(s.remaining)+1;
+    s.totalUsed=Math.max(0,Number(s.totalUsed)-1);
+  }
+  history=history.filter(h=>h.id!==historyId);
+  save();
+  renderStudents();
+  renderDashboard();
+}
+  
 // 設定頁功能
 function forceUpdate(){
   if(confirm('確定要更新嗎？資料不會消失。')){
