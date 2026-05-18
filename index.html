@@ -117,14 +117,9 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .signin-log-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-bottom:0.5px solid var(--border);font-size:13px;}
 .signin-log-row:last-child{border:none;}
 .signin-log-num{width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:var(--green-text);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sync-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 16px;font-size:12px;color:var(--text3);border-bottom:0.5px solid var(--border);background:var(--bg);flex-shrink:0;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);}
-.sync-dot.ok{background:var(--green);}
-.sync-dot.err{background:var(--red);}
-.sync-dot.loading{background:var(--amber);animation:pulse 1s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.upload-banner{background:#FAEEDA;border-bottom:1px solid #EF9F27;padding:10px 16px;font-size:13px;color:#633806;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.upload-banner button{background:#633806;color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;}
+.setting-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;}
+.setting-card-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.setting-card-desc{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -132,14 +127,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
   <div class="header">
     <span class="header-title" id="page-header-title">總覽</span>
     <button class="header-btn" id="header-action-btn" onclick="headerAction()" style="display:none">＋</button>
-  </div>
-  <div id="upload-banner" style="display:none;" class="upload-banner">
-    <span id="upload-banner-text">⚠️ 偵測到本機資料</span>
-    <button onclick="uploadLocalData()">上傳到雲端</button>
-  </div>
-  <div class="sync-bar">
-    <div class="sync-dot loading" id="sync-dot"></div>
-    <span id="sync-text">連線中...</span>
   </div>
   <div class="content">
     <div class="page active" id="page-dashboard">
@@ -203,6 +190,25 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
       </div>
       <div id="history-list"></div>
     </div>
+    <div class="page" id="page-settings">
+      <p class="section-title">應用程式設定</p>
+      <div class="setting-card">
+        <div class="setting-card-title">🔄 檢查並更新</div>
+        <div class="setting-card-desc">若功能有新增或修正，點此清除快取並重新載入最新版本。你的資料不會受影響。</div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="forceUpdate()">立即更新</button>
+      </div>
+      <div class="setting-card">
+        <div class="setting-card-title">📋 匯出資料備份</div>
+        <div class="setting-card-desc">將所有學員與紀錄複製到剪貼簿，可貼到記事本或 Line 自存備份。</div>
+        <button class="btn" style="width:100%;justify-content:center;padding:13px;" onclick="exportData()">匯出資料</button>
+      </div>
+      <div class="setting-card">
+        <div class="setting-card-title">📥 匯入資料</div>
+        <div class="setting-card-desc">將之前匯出的備份資料貼入，可還原到新裝置。⚠️ 會覆蓋現有資料。</div>
+        <button class="btn" style="width:100%;justify-content:center;padding:13px;" onclick="importData()">匯入資料</button>
+      </div>
+      <div style="text-align:center;font-size:12px;color:var(--text3);margin-top:16px;">版本 2.0</div>
+    </div>
   </div>
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard"><span class="nav-icon">⊞</span><span class="nav-label">總覽</span></button>
@@ -211,6 +217,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
     <button class="nav-item" onclick="showPage('students')" id="nav-students"><span class="nav-icon">👤</span><span class="nav-label">學員</span></button>
     <button class="nav-item" onclick="showPage('plans')" id="nav-plans"><span class="nav-icon">💰</span><span class="nav-label">方案</span></button>
     <button class="nav-item" onclick="showPage('history')" id="nav-history"><span class="nav-icon">🗒</span><span class="nav-label">紀錄</span></button>
+    <button class="nav-item" onclick="showPage('settings')" id="nav-settings"><span class="nav-icon">⚙️</span><span class="nav-label">設定</span></button>
   </nav>
 </div>
 
@@ -289,7 +296,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 </div>
 
 <script>
-const NETLIFY_FN='https://euphonious-croissant-4cc2a5.netlify.app/.netlify/functions/sheets';
 const SPP=8;
 const PLANS={old:{solo:{trial:null,regular:1750},duo:{trial:null,regular:3300}},new:{solo:{trial:1799,regular:1900},duo:{trial:3000,regular:3400}},friend:{solo:{trial:null,regular:1500},duo:{trial:null,regular:2800}}};
 const TL={new:'新生',old:'舊生',friend:'親友'};
@@ -299,103 +305,12 @@ const DOW=['日','一','二','三','四','五','六'];
 let students=[],history=[],editingId=null,addSessionsId=null,adjustId=null;
 let calYear,calMonth,calSelected,currentPage='dashboard';
 
-function setSyncStatus(s,msg){
-  const dot=document.getElementById('sync-dot');
-  const txt=document.getElementById('sync-text');
-  dot.className='sync-dot'+(s==='ok'?' ok':s==='err'?' err':' loading');
-  txt.textContent=msg;
-}
-
-function fixTypes(obj){
-  const numKeys=['remaining','totalSessions','totalPeriods','totalUsed','amount','periods','remainingAfter','fromUsed','fromRemaining','fromPeriods','toUsed','toRemaining','toPeriods'];
-  const r={...obj};
-  numKeys.forEach(k=>{if(r[k]!==undefined&&r[k]!=='')r[k]=Number(r[k]);});
-  if(r.adjusted!==undefined)r.adjusted=r.adjusted==='TRUE'||r.adjusted===true||r.adjusted==='true';
-  return r;
-}
-
-function getLocal(){
-  try{return{students:JSON.parse(localStorage.getItem('coach_pwa_students')||'[]'),history:JSON.parse(localStorage.getItem('coach_pwa_history')||'[]')};}
-  catch(e){return{students:[],history:[]};}
-}
-function saveLocal(){
-  try{localStorage.setItem('coach_pwa_students',JSON.stringify(students));localStorage.setItem('coach_pwa_history',JSON.stringify(history));}catch(e){}
-}
-
-async function loadFromCloud(){
-  setSyncStatus('loading','同步中...');
-  try{
-    const res=await fetch(NETLIFY_FN+'?action=getData');
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(data.error)throw new Error(data.error);
-    students=(data.students||[]).map(fixTypes);
-    history=(data.history||[]).map(fixTypes);
-    saveLocal();
-    setSyncStatus('ok','已同步 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
-    renderCurrentPage();
-  }catch(e){
-    setSyncStatus('err','同步失敗，使用本機資料');
-    const local=getLocal();
-    students=local.students;
-    history=local.history;
-    renderCurrentPage();
-  }
-}
-
-async function saveToCloud(){
-  setSyncStatus('loading','儲存中...');
-  saveLocal();
-  try{
-    const res=await fetch(NETLIFY_FN+'?action=saveData',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({students,history})
-    });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(data.error)throw new Error(data.error);
-    setSyncStatus('ok','已儲存 '+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
-  }catch(e){
-    setSyncStatus('err','雲端儲存失敗，已存本機');
-  }
-}
-
-async function uploadLocalData(){
-  const local=getLocal();
-  if(!local.students.length){alert('找不到本機資料');return;}
-  students=local.students;
-  history=local.history;
-  setSyncStatus('loading','上傳中...');
-  try{
-    const res=await fetch(NETLIFY_FN+'?action=saveData',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({students,history})
-    });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    if(data.error)throw new Error(data.error);
-    setSyncStatus('ok','上傳成功！資料已同步到雲端');
-    document.getElementById('upload-banner').style.display='none';
-    renderCurrentPage();
-  }catch(e){
-    setSyncStatus('err','上傳失敗：'+e.message);
-  }
-}
-
+function load(){try{students=JSON.parse(localStorage.getItem('coach_pwa_students')||'[]');history=JSON.parse(localStorage.getItem('coach_pwa_history')||'[]');}catch(e){students=[];history=[];}}
+function save(){try{localStorage.setItem('coach_pwa_students',JSON.stringify(students));localStorage.setItem('coach_pwa_history',JSON.stringify(history));}catch(e){}}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){if(!d)return '—';const p=String(d).split('-');return p[0]+'/'+p[1]+'/'+p[2];}
-
-function renderCurrentPage(){
-  if(currentPage==='dashboard')renderDashboard();
-  else if(currentPage==='roster')renderRoster();
-  else if(currentPage==='calendar')renderCalendar();
-  else if(currentPage==='students')renderStudents();
-  else if(currentPage==='history')renderHistory();
-  else if(currentPage==='plans')renderPlans();
-}
+load();
 
 function showPage(p){
   currentPage=p;
@@ -403,20 +318,27 @@ function showPage(p){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('nav-'+p).classList.add('active');
-  const titles={dashboard:'總覽',roster:'學生名單',calendar:'行事曆',students:'學員詳情',plans:'方案',history:'紀錄'};
+  const titles={dashboard:'總覽',roster:'學生名單',calendar:'行事曆',students:'學員詳情',plans:'方案',history:'紀錄',settings:'設定'};
   document.getElementById('page-header-title').textContent=titles[p]||'';
   document.getElementById('header-action-btn').style.display=p==='students'?'flex':'none';
-  renderCurrentPage();
+  if(p==='dashboard')renderDashboard();
+  if(p==='roster')renderRoster();
+  if(p==='calendar')renderCalendar();
+  if(p==='students')renderStudents();
+  if(p==='plans')renderPlans();
+  if(p==='history')renderHistory();
 }
 function headerAction(){openAddStudent();}
 
 function renderDashboard(){
   const ts=students.length,active=students.filter(s=>Number(s.remaining)>0).length;
+  // 累積收入：每位學員 單堂價 × 8 × 總期數
   const rev=students.reduce((a,s)=>{
-  const perSession=PLANS[s.type]?.[s.course]?.regular||0;
-  return a+(perSession*8*(Number(s.totalPeriods)||0));
-},0);
-const signs=students.reduce((a,s)=>a+(Number(s.totalUsed)||0),0);
+    const perSession=PLANS[s.type]?.[s.course]?.regular||0;
+    return a+(perSession*SPP*(Number(s.totalPeriods)||0));
+  },0);
+  // 上課次數：每位學員的 totalUsed 加總（含校正前歷史）
+  const signs=students.reduce((a,s)=>a+(Number(s.totalUsed)||0),0);
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric-card"><div class="metric-lbl">學員總數</div><div class="metric-val">${ts}</div></div>
     <div class="metric-card"><div class="metric-lbl">有效學員</div><div class="metric-val">${active}</div></div>
@@ -569,9 +491,9 @@ function saveStudent(){
   const amount=parseInt(document.getElementById('f-amount').value)||0;const note=document.getElementById('f-note').value.trim();const paydate=document.getElementById('f-paydate').value||today();
   if(editingId){const s=students.find(st=>st.id===editingId);s.name=name;s.type=type;s.course=course;s.planType=planType;s.note=note;}
   else{const id=genId();students.push({id,name,type,course,planType,remaining:sessions,totalSessions:sessions,totalPeriods:periods,totalUsed:0,joinDate:paydate,lastPayDate:paydate,note,adjusted:false});history.push({id:genId(),studentId:id,type:'payment',date:paydate,amount,periods,note:'初次加入'+(note?'・'+note:'')});}
-  closeSheet('sheet-student');renderStudents();renderDashboard();saveToCloud();
+  save();closeSheet('sheet-student');renderStudents();renderDashboard();
 }
-function deleteStudent(id){if(!confirm('確定刪除此學員？'))return;students=students.filter(s=>s.id!==id);renderStudents();renderDashboard();saveToCloud();}
+function deleteStudent(id){if(!confirm('確定刪除此學員？'))return;students=students.filter(s=>s.id!==id);save();renderStudents();renderDashboard();}
 
 function openSignin(studentId,dateStr){const sel=document.getElementById('si-student');sel.innerHTML='<option value="">選擇學員</option>'+students.map(s=>`<option value="${s.id}" ${s.id===studentId?'selected':''}>${s.name}（剩 ${s.remaining} 堂）</option>`).join('');document.getElementById('si-date').value=dateStr||today();document.getElementById('si-note').value='';updateSiPreview();openSheet('sheet-signin');}
 function updateSiPreview(){const sid=document.getElementById('si-student').value;const s=students.find(st=>st.id===sid);const el=document.getElementById('si-preview');if(!s){el.textContent='';return;}el.textContent=`目前剩餘 ${s.remaining} 堂，簽到後剩 ${Number(s.remaining)-1} 堂`;el.style.color=Number(s.remaining)<=1?'var(--red)':'var(--text2)';}
@@ -582,7 +504,7 @@ function saveSignin(){
   s.remaining=Number(s.remaining)-1;s.totalUsed=Number(s.totalUsed)+1;
   const date=document.getElementById('si-date').value||today();const note=document.getElementById('si-note').value.trim();
   history.push({id:genId(),studentId:s.id,type:'signin',date,remainingAfter:s.remaining,note});
-  closeSheet('sheet-signin');renderStudents();renderDashboard();if(calSelected===date)renderDayDetail(date);saveToCloud();
+  save();closeSheet('sheet-signin');renderStudents();renderDashboard();if(calSelected===date)renderDayDetail(date);
 }
 
 function openAddSessions(id){addSessionsId=id;const s=students.find(st=>st.id===id);document.getElementById('as-name').value=s.name;document.getElementById('as-periods').value=1;document.getElementById('as-amount').value='';document.getElementById('as-paydate').value=today();document.getElementById('as-note').value='';asAutoFill();openSheet('sheet-addsessions');}
@@ -593,7 +515,7 @@ function saveAddSessions(){
   const amount=parseInt(document.getElementById('as-amount').value)||0;const note=document.getElementById('as-note').value.trim();const paydate=document.getElementById('as-paydate').value||today();
   s.remaining=Number(s.remaining)+sessions;s.totalSessions=Number(s.totalSessions)+sessions;s.totalPeriods=(Number(s.totalPeriods)||1)+periods;s.lastPayDate=paydate;
   history.push({id:genId(),studentId:s.id,type:'payment',date:paydate,amount,periods,note:note||'續費新增期數'});
-  closeSheet('sheet-addsessions');renderStudents();renderDashboard();saveToCloud();
+  save();closeSheet('sheet-addsessions');renderStudents();renderDashboard();
 }
 
 function openAdjust(id){adjustId=id;const s=students.find(st=>st.id===id);document.getElementById('adj-name').value=s.name;document.getElementById('adj-used').value=s.totalUsed;document.getElementById('adj-remaining').value=s.remaining;document.getElementById('adj-periods').value=s.totalPeriods||1;document.getElementById('adj-note').value='';adjPreview();openSheet('sheet-adjust');}
@@ -603,23 +525,59 @@ function saveAdjust(){
   const nu=parseInt(document.getElementById('adj-used').value)||0;const nr=parseInt(document.getElementById('adj-remaining').value)||0;const np=parseInt(document.getElementById('adj-periods').value)||1;const note=document.getElementById('adj-note').value.trim();
   history.push({id:genId(),studentId:s.id,type:'adjust',date:today(),fromUsed:s.totalUsed,fromRemaining:s.remaining,fromPeriods:s.totalPeriods||1,toUsed:nu,toRemaining:nr,toPeriods:np,note:note||'期數校正'});
   s.totalUsed=nu;s.remaining=nr;s.totalPeriods=np;s.totalSessions=nu+nr;s.adjusted=true;
-  closeSheet('sheet-adjust');renderStudents();renderDashboard();saveToCloud();
+  save();closeSheet('sheet-adjust');renderStudents();renderDashboard();
+}
+
+// 設定頁功能
+function forceUpdate(){
+  if(confirm('確定要更新嗎？資料不會消失。')){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(regs=>{regs.forEach(r=>r.unregister());});
+    }
+    caches.keys().then(keys=>{keys.forEach(k=>caches.delete(k));});
+    setTimeout(()=>location.reload(true),300);
+  }
+}
+
+function exportData(){
+  const data=JSON.stringify({students,history},null,0);
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(data).then(()=>{
+      alert('✅ 資料已複製！請貼到記事本或 Line 儲存。');
+    }).catch(()=>fallbackExport(data));
+  }else{
+    fallbackExport(data);
+  }
+}
+function fallbackExport(data){
+  const ta=document.createElement('textarea');
+  ta.value=data;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.focus();ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  alert('✅ 資料已複製！請貼到記事本或 Line 儲存。');
+}
+
+function importData(){
+  const raw=prompt('請貼上之前匯出的備份資料：');
+  if(!raw)return;
+  try{
+    const data=JSON.parse(raw);
+    if(!data.students||!data.history)throw new Error('格式錯誤');
+    if(!confirm(`確定要匯入 ${data.students.length} 位學員的資料？現有資料將被覆蓋。`))return;
+    students=data.students;
+    history=data.history;
+    save();
+    renderDashboard();
+    alert('✅ 匯入成功！');
+  }catch(e){
+    alert('❌ 匯入失敗，請確認資料格式正確。');
+  }
 }
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
 initCal();
-
-const _local=getLocal();
-if(_local.students.length>0){
-  students=_local.students;
-  history=_local.history;
-  renderCurrentPage();
-  setSyncStatus('err','偵測到本機資料，請上傳到雲端');
-  document.getElementById('upload-banner-text').textContent=`⚠️ 偵測到 ${_local.students.length} 位學員的本機資料`;
-  document.getElementById('upload-banner').style.display='flex';
-}else{
-  loadFromCloud();
-}
+showPage('dashboard');
 </script>
 </body>
 </html>
