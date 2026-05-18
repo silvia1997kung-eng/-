@@ -412,8 +412,11 @@ function headerAction(){openAddStudent();}
 
 function renderDashboard(){
   const ts=students.length,active=students.filter(s=>Number(s.remaining)>0).length;
-  const rev=history.filter(h=>h.type==='payment').reduce((a,b)=>a+(Number(b.amount)||0),0);
-  const signs=history.filter(h=>h.type==='signin').length;
+  const rev=students.reduce((a,s)=>{
+  const perSession=PLANS[s.type]?.[s.course]?.regular||0;
+  return a+(perSession*8*(Number(s.totalPeriods)||0));
+},0);
+const signs=students.reduce((a,s)=>a+(Number(s.totalUsed)||0),0);
   document.getElementById('dash-metrics').innerHTML=`
     <div class="metric-card"><div class="metric-lbl">學員總數</div><div class="metric-val">${ts}</div></div>
     <div class="metric-card"><div class="metric-lbl">有效學員</div><div class="metric-val">${active}</div></div>
